@@ -1,0 +1,3 @@
+include/curl/* linguist-vendored
+include/plist/* linguist-vendored
+include/openssl/* linguist-vendored

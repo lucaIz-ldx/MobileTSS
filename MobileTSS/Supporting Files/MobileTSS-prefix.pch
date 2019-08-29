@@ -1,0 +1,9 @@
+//
+//  MobileTSS-prefix.pch
+//  MobileTSS
+//
+//  Created by User on 1/11/19.
+//
+
+
+#import "TSSBoolean.h"
