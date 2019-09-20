@@ -18,7 +18,7 @@ Both 32-bit and 64-bit devices are supported.<br/>
 This project is written in Swift 4.0 so you need to have Xcode 9 or above installed on Mac to compile it. After finish downloading the project zip, open project file and start to compile and should run on simulator. 
 
 ## Support
-Any contributions are welcome. This project is under MIT license.  
+Any contributions are welcome. This project is under LGPL-3.0 license.  
 
 ## Credits
 * @tihmstar for [tsschecker](https://github.com/tihmstar/tsschecker) and [img4tool](https://github.com/tihmstar/img4tool)
