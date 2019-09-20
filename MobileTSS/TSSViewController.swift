@@ -16,6 +16,11 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
             super.init(deviceBoard: deviceBoard, deviceModel: deviceModel, version: version, buildID: buildID, buildManifestURL: buildManifestURL, isOTA: false, status: CustomFirmwareTableViewController.FetchedTSSResult(currentStatus: status))
             self.releaseDate = releaseDate
         }
+
+        override var visibleInfoDictionary: [(String, String)] {
+            guard let releaseDate = releaseDate else { return super.visibleInfoDictionary }
+            return super.visibleInfoDictionary + [(JsonKeys.releasedate_Key, releaseDate)]
+        }
     }
 
     @IBOutlet private var tableView: UITableView!
@@ -43,6 +48,7 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        
         self.performSegue(withIdentifier: "ToFirmwareInfo", sender: self.allFirmwareInfo[indexPath.row])
     }
 
@@ -93,6 +99,9 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
         if #available(iOS 9.0, *), self.traitCollection.forceTouchCapability == .available {
             registerForPreviewing(with: self, sourceView: self.tableView)
         }
+        if #available(iOS 11.0, *) {
+            self.tableView.dragDelegate = self
+        }
         self.tableView.tableFooterView = UIView(frame: .zero)
         let screenWidth = UIScreen.main.bounds.size.width
         let labelWidth: CGFloat = 220
@@ -134,7 +143,11 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
     private func refreshData(completionHandler: @escaping (() -> Void)) {
         var request = URLRequest(url: URL(string: "https://api.ipsw.me/v4/device/\(GlobalConstants.localProductType)")!)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+            }
             guard self.loadingEffectBackgroundView != nil else {
                 DispatchQueue.main.async(execute: completionHandler)
                 return
@@ -234,6 +247,13 @@ extension TSSViewController : UIViewControllerPreviewingDelegate {
 
     func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
         self.show(viewControllerToCommit, sender: nil)
+    }
+}
+@available(iOS 11.0, *)
+extension TSSViewController : UITableViewDragDelegate {
+    func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
+        session.localContext = self.allFirmwareInfo[indexPath.row].buildManifestURL
+        return [UIDragItem(itemProvider: NSItemProvider(object: self.allFirmwareInfo[indexPath.row].buildManifestURL as NSItemProviderWriting))]
     }
 }
 extension NSNotification.Name {

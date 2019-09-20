@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		EA035F3A20EA2A6D00AE61D9 /* GlobalConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA035F3920EA2A6D00AE61D9 /* GlobalConstants.swift */; };
 		EA0743C320F0A52A00F86F96 /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0743C220F0A52A00F86F96 /* libMobileGestalt.tbd */; };
+		EA0E257C2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E257B2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift */; };
 		EA1731FE20FED1AF00A2E091 /* iDeviceTSSRequest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA1731FB20FED1AD00A2E091 /* iDeviceTSSRequest.cpp */; };
 		EA1731FF20FED1AF00A2E091 /* TSSC.c in Sources */ = {isa = PBXBuildFile; fileRef = EA1731FC20FED1AE00A2E091 /* TSSC.c */; };
 		EA17320220FED2F100A2E091 /* libfragmentzip.c in Sources */ = {isa = PBXBuildFile; fileRef = EA17320020FED2F100A2E091 /* libfragmentzip.c */; };
@@ -50,6 +51,7 @@
 		EA0743C220F0A52A00F86F96 /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
 		EA0743C420F0A5FC00F86F96 /* MobileGestalt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MobileGestalt.h; sourceTree = "<group>"; };
 		EA0743C520F0A61F00F86F96 /* MobileTSS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MobileTSS-Bridging-Header.h"; sourceTree = "<group>"; };
+		EA0E257B2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectFirmwareTableViewController.swift; sourceTree = "<group>"; };
 		EA1731FA20FED1AD00A2E091 /* TSSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSSC.h; sourceTree = "<group>"; };
 		EA1731FB20FED1AD00A2E091 /* iDeviceTSSRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iDeviceTSSRequest.cpp; sourceTree = "<group>"; };
 		EA1731FC20FED1AE00A2E091 /* TSSC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TSSC.c; sourceTree = "<group>"; };
@@ -169,6 +171,7 @@
 				EA894A8921D79CC200F8676A /* FetchIntervalTableViewController.swift */,
 				EA9BEB9121FE286B000DE904 /* APNonceListTableViewController.swift */,
 				EA92BE3F2257E91C0058EE1A /* APNonceEditTableViewController.swift */,
+				EA0E257B2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift */,
 				EA7143E720E9D0F000A32156 /* Info.plist */,
 				EA7143DF20E9D0EF00A32156 /* Main.storyboard */,
 				EA7143E220E9D0F000A32156 /* Assets.xcassets */,
@@ -337,6 +340,7 @@
 				EACB770120F741B100421493 /* FirmwareInfoTableViewCell.swift in Sources */,
 				EA1731FE20FED1AF00A2E091 /* iDeviceTSSRequest.cpp in Sources */,
 				EA92BE402257E91C0058EE1A /* APNonceEditTableViewController.swift in Sources */,
+				EA0E257C2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift in Sources */,
 				EA894A8A21D79CC200F8676A /* FetchIntervalTableViewController.swift in Sources */,
 				EAB5327220F6DC2B0092EDB6 /* TSSHelper.c in Sources */,
 				EA5E7E44216F928800D06E56 /* LocalDeviceConstants.mm in Sources */,
@@ -521,6 +525,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				INFOPLIST_FILE = MobileTSS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = luca.MobileTSS;

@@ -27,6 +27,7 @@ namespace {
 //    const CFStringRef kMGBasebandSerialNumber = CFSTR("BasebandSerialNumber");
 //    const CFStringRef kMGFirmwareNonce = CFSTR("FirmwareNonce");
 //#pragma clang diagnostic pop
+    static const int Unknown = 0;
     static const DeviceInfo localDatabase[] = {
 
         {"iPhone2,1", "n88ap", 0, 0},
@@ -64,6 +65,11 @@ namespace {
         {"iPhone11,6", "d331pap", 165673526, 12},
         {"iPhone11,8", "n841ap", 165673526, 12},
 
+        {"iPhone12,1", "n104ap", Unknown, Unknown},
+//        {"iPhone12,3", "d421ap", Unknown, Unknown},
+//        {"iPhone12,5", "d421ap", Unknown, Unknown},
+
+
         {"iPod1,1", "n45ap", 0, 0},
         {"iPod2,1", "n72ap", 0, 0},
         {"iPod3,1", "n18ap", 0, 0},
@@ -75,19 +81,28 @@ namespace {
         {"iPad1,1", "k48ap", 0, 0},
         {"iPad2,1", "k93ap", 0, 0},
         {"iPad2,2", "k94ap", 257, 12},
+        {"iPad2,3", "k95ap", Unknown, Unknown},
         {"iPad2,4", "k93aap", 0, 0},
         {"iPad2,5", "p105ap", 0, 0},
+        {"iPad2,6", "p106ap", Unknown, Unknown},
+        {"iPad2,7", "p107ap", Unknown, Unknown},
+
         {"iPad3,1", "j1ap", 0, 0},
         {"iPad3,2", "j2ap", 4, 4},
         {"iPad3,3", "j2aap", 4, 4},
         {"iPad3,4", "p101ap", 0, 0},
+        {"iPad3,5", "p102ap", 3255536192, 4},
         {"iPad3,6", "p103ap", 3255536192, 4},
         {"iPad4,1", "j71ap", 0, 0},
         {"iPad4,2", "j72ap", 3554301762, 4},
+        {"iPad4,3", "j73ap", Unknown, Unknown},
         {"iPad4,4", "j85ap", 0, 0},
         {"iPad4,5", "j86ap", 3554301762, 4},
+        {"iPad4,6", "j87ap", Unknown, Unknown},
         {"iPad4,7", "j85map", 0, 0},
         {"iPad4,8", "j86map", 3554301762, 4},
+        {"iPad4,9", "j87map", Unknown, Unknown},
+
         {"iPad5,1", "j96ap", 0, 0},
         {"iPad5,2", "j97ap", 3840149528, 4},
         {"iPad5,3", "j81ap", 0, 0},
@@ -116,6 +131,11 @@ namespace {
         {"iPad8,6", "j320xap", 0, 0},
         {"iPad8,7", "j321ap", 165673526, 12},
         {"iPad8,8", "j321xap", 165673526, 12},
+
+        {"iPad11,1", "j210ap", 0, 0},
+        {"iPad11,2", "j211ap", Unknown, Unknown},
+        {"iPad11,3", "j217ap", 0, 0},
+        {"iPad11,4", "j218ap", Unknown, Unknown},
 
         {"AppleTV2,1", "k66ap", 0, 0},
         {"AppleTV3,1", "j33ap", 0, 0},
@@ -281,4 +301,39 @@ size_t apNonceLengthForLocalDevice(void)
 //    });
 //    return cc;
 //}
-
+void updateDatabase(void) {
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://api.ipsw.me/v4/devices"]];
+    [request setHTTPMethod:@"GET"];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+    NSURLSession *session = [NSURLSession sharedSession];
+    NSURLSessionDataTask *task = [session dataTaskWithRequest:request
+                                            completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+                                                if (error) {
+                                                    return;
+                                                }
+                                                NSArray<NSDictionary *> *array = [NSJSONSerialization JSONObjectWithData:data options:0 error:nil];
+                                                if (![array isKindOfClass: [NSArray class]]) {
+                                                    return;
+                                                }
+                                                NSMutableArray *absentInDatabase = [NSMutableArray array];
+                                                NSArray *const identifierArray = @[@"iPhone",@"iPad",@"iPod"];
+                                                for (NSDictionary *device in array) {
+                                                    NSString *idenifier = device[@"identifier"];
+                                                    bool qualified = false;
+                                                    for (NSString *identifierInArray in identifierArray) {
+                                                        if ([idenifier containsString:identifierInArray]) {
+                                                            qualified = true;
+                                                            break;
+                                                        }
+                                                    }
+                                                    if (!qualified) {
+                                                        continue;
+                                                    }
+                                                    if (findDeviceInfoForSpecifiedConfiguration([device[@"boardconfig"] cStringUsingEncoding:NSASCIIStringEncoding]) == nullptr) {
+                                                        [absentInDatabase addObject:device];
+                                                    }
+                                                }
+                                                NSLog(@"absentInDatabase: %@", absentInDatabase);
+                                            }];
+    [task resume];
+}

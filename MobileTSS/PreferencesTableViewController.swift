@@ -35,7 +35,7 @@ class PreferencesTableViewController: UITableViewController {
         }
         static let preferencesBitData_Key = "Preferences data"
     }
-    private enum FetchInterval: Int {
+    private enum FetchInterval: Int, CustomStringConvertible {
         case One_Day = 86400
         case Twelve_Hours = 43200
         case Eight_Hours = 28800
@@ -43,7 +43,7 @@ class PreferencesTableViewController: UITableViewController {
         case Two_Hours = 7200
         case One_Hour = 3600
         case Minimum = 0
-        func toString() -> String {
+        var description: String {
             let hours = self.rawValue / 3600
             return hours != 0 ? "\(hours) Hour\(hours == 1 ? "" : "s")" : "Minimum"
         }
@@ -110,6 +110,11 @@ class PreferencesTableViewController: UITableViewController {
             preferencesBit = PreferencesTableViewController.PreferencesKeys.PreferencesBit(rawValue: (preferencesBit.rawValue & ~0b111000) | (newValue << 3))
         }
     }
+    private static var requestTimeout: Int = UserDefaults.standard.object(forKey: TSSTimeoutPreferencesKey) as? Int ?? 7 {
+        didSet {
+            UserDefaults.standard.set(requestTimeout, forKey: TSSTimeoutPreferencesKey)
+        }
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         if let ecid = TSSRequest.localECID {
@@ -118,7 +123,7 @@ class PreferencesTableViewController: UITableViewController {
         self.deviceModelLabel.text = GlobalConstants.localProductType
         self.deviceBoardLabel.text = GlobalConstants.localDeviceBoard
         self.backgroundFetchSwitch.isOn = PreferencesTableViewController.isBackgroundFetchingOn
-        self.fetchIntervalLabel.text = FetchInterval.allValues[PreferencesTableViewController.fetchIntervalAtIndex].toString()
+        self.fetchIntervalLabel.text = FetchInterval.allValues[PreferencesTableViewController.fetchIntervalAtIndex].description
         
         self.showUnsignedFirmwareSwitch.isOn = PreferencesTableViewController.isShowingUnsignedFirmware
         //        self.certIDLabel.text = String(getLocalDeviceInfo().pointee.basebandCertID)
@@ -264,7 +269,7 @@ class PreferencesTableViewController: UITableViewController {
             fivc.selectedIndexCallback = { selectedIndex in
                 PreferencesTableViewController.fetchIntervalAtIndex = selectedIndex
                 let interval = FetchInterval.allValues[selectedIndex]
-                self.fetchIntervalLabel.text = interval.toString()
+                self.fetchIntervalLabel.text = interval.description
                 UIApplication.shared.setMinimumBackgroundFetchInterval(TimeInterval(interval == FetchInterval.allValues.last! ? UIApplicationBackgroundFetchIntervalMinimum : TimeInterval(interval.rawValue)))
             }
         }

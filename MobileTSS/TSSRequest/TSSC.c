@@ -92,6 +92,7 @@ static int tss_populate_devicevals(plist_t tssreq, uint64_t ecid, const char *no
 
     return 0;
 }
+/*
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wunused-function"
 static int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, DeviceInfo_BridgedCStruct *device, TSSCustomUserData *userData) {
@@ -106,15 +107,14 @@ static int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, Devi
     srand((unsigned int)time(NULL));
     int n=0; for (int i=1; i<7; i++) BbChipID += (rand() % 10) * pow(10, ++n);
 
-    char bbsnum[device->bbsnumSize];
-    getRandNum(bbsnum, device->bbsnumSize, 256);
+//    char bbsnum[device->bbsnumSize];
+//    getRandNum(bbsnum, device->bbsnumSize, 256);
 
-    /* BasebandNonce not required */
     //    plist_dict_set_item(parameters, "BbNonce", plist_new_data(bbnonce, NONCELEN_BASEBAND));
 
     plist_dict_set_item(parameters, "BbChipID", plist_new_uint(BbChipID));
-    plist_dict_set_item(parameters, "BbGoldCertId", plist_new_uint(device->basebandCertID));
-    plist_dict_set_item(parameters, "BbSNUM", plist_new_data(bbsnum, device->bbsnumSize));
+//    plist_dict_set_item(parameters, "BbGoldCertId", plist_new_uint(device->basebandCertID));
+//    plist_dict_set_item(parameters, "BbSNUM", plist_new_data(bbsnum, device->bbsnumSize));
 
     plist_t BasebandFirmware = plist_access_path(tssparameters, 2, "Manifest", "BasebandFirmware");
     if (!BasebandFirmware || plist_get_node_type(BasebandFirmware) != PLIST_DICT) {
@@ -135,6 +135,7 @@ static int tss_populate_basebandvals(plist_t tssreq, plist_t tssparameters, Devi
     return 0;
 }
 #pragma clang diagnostic pop
+*/
 static const size_t apNonceLengthPreiPhone7 = 20;
 static const size_t apNonceLengthNew = 32;
 size_t apNonceLengthForDeviceModel(const char *deviceModel) {

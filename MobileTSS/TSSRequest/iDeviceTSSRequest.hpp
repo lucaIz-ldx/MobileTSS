@@ -38,8 +38,8 @@ class DeviceVersion {
     bool isOTA;
 public:
     uint64_t identifier() const {return static_cast<uint64_t>(std::hash<std::string>{}(this->version + this->buildID + std::string(this->isOTA ? "true" : "false")));}
-    const std::string &getVersion() const {return this->version;}
-    const std::string &getBuildID() const {return this->buildID;}
+    std::string getVersion() const {return this->version;}
+    std::string getBuildID() const {return this->buildID;}
     bool isOTAFirmware() const {return this->isOTA;}
     void setVersion(const std::string &version) {this->version = version;}
     void setBuildID(const std::string &buildID) {this->buildID = buildID;}
@@ -78,6 +78,7 @@ public:
 
     ~iDeviceTSSRequest() noexcept;
 
+    double getTimeout() const;
     uint64_t getECID() const {return this->ecid;}
     const char *getFirmwareURL() const {return this->firmwareURL;}
     DeviceInfo_ptr getDeviceInfo() const {return this->deviceInfo;}
@@ -104,6 +105,7 @@ public:
     void setDeviceInfo(DeviceInfo_ptr deviceInfo);
     void setFirmwareURL(const char *firmwareURL);
     void setECID(uint64_t ecid);
+    void setTimeout(double timeout);
 
     struct TSSRequestError {
         enum TSSRequestErrorCode {

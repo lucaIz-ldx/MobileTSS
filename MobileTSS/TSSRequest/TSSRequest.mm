@@ -28,6 +28,7 @@
 @end
 
 NSString *const TSSRequestErrorDomain = @"TSSRequestErrorDomain";
+NSString *const TSSTimeoutPreferencesKey = @"Timeout";
 
 static void messageOutputFromRequest(void *__nonnull userData, const char *message) {
     auto request = (__bridge TSSRequest *)userData;
@@ -35,6 +36,8 @@ static void messageOutputFromRequest(void *__nonnull userData, const char *messa
 }
 @interface TSSRequest ()
 @property (readwrite, nonatomic) NSString *firmwareURL;
+@property (readwrite, copy, nonatomic, nullable) NSArray<NSString *> *supportedDevices;
+
 //@property (nonatomic) DeviceInfo_ptr deviceInfo;
 @property (nonatomic) iDeviceTSSRequest *deviceRequest;
 @property (nonatomic) DeviceVersion *parsedDeviceVersion;   // internal use
@@ -145,6 +148,8 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
         self.firmwareURL = urlInString;
         auto deviceInfo = deviceBoardConfiguration ? findDeviceInfoForSpecifiedConfiguration(deviceBoardConfiguration.asciiString) : nullptr;
         self.deviceRequest = new iDeviceTSSRequest(urlInString.asciiString, deviceInfo, parseECID(ecid.asciiString));
+        id obj = [NSUserDefaults.standardUserDefaults objectForKey:@"Timeout"];
+        self.timeout = [obj isKindOfClass:[NSNumber class]] ? [obj integerValue] : 7;
     }
     return self;
 }
@@ -168,7 +173,7 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
     return nil;
 }
 - (NSString *) buildID {
-    const std::string &buildid = (self.OTADeviceVersion ? self.OTADeviceVersion : self.parsedDeviceVersion)->getBuildID();
+    auto buildid = (self.OTADeviceVersion ? self.OTADeviceVersion : self.parsedDeviceVersion)->getBuildID();
     if (buildid.empty()) {
         return nil;
     }
@@ -233,10 +238,10 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
     }
     const auto &supportedList = *self.deviceRequest->supportedDevice();
     if (supportedList.empty()) {
-        return @[];
+        return (_supportedDevices = @[]);
     }
     if (supportedList.size() == 1) {
-        return @[[NSString stringWithCStringASCII:supportedList[0]->deviceModel]];
+        return (_supportedDevices = @[[NSString stringWithCStringASCII:supportedList[0]->deviceModel]]);
     }
     NSMutableDictionary<NSString *, NSString *> *itemPair = [NSMutableDictionary dictionary];
     for (auto &deviceInfo : supportedList) {
@@ -250,7 +255,7 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
     }];
     NSMutableCharacterSet *customSet = [NSMutableCharacterSet characterSetWithCharactersInString:@",("];
     [customSet formUnionWithCharacterSet:NSCharacterSet.letterCharacterSet];
-    return [itemPair.allValues sortedArrayUsingComparator:^NSComparisonResult(NSString * _Nonnull obj1, NSString * _Nonnull obj2) {
+    return (_supportedDevices = [itemPair.allValues sortedArrayUsingComparator:^NSComparisonResult(NSString * _Nonnull obj1, NSString * _Nonnull obj2) {
         NSArray<NSString *> * (^split) (NSString *) = ^NSArray<NSString *> * (NSString *string) {
             auto array = [string componentsSeparatedByCharactersInSet:customSet];
             NSMutableArray<NSString *> *mutableArray = [array mutableCopy];
@@ -272,7 +277,7 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
             }
         }
         return NSOrderedSame;
-    }];
+    }]);
 }
 - (void) setDelegate:(id<TSSRequestDelegate>)delegate {
     _delegate = delegate;
@@ -306,9 +311,15 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
 - (void) setSepnonce:(NSString *)sepnonce {
     self.deviceRequest->setSepNonce(sepnonce.asciiString);
 }
+- (NSTimeInterval) timeout {
+    return self.deviceRequest->getTimeout();
+}
+- (void) setTimeout:(NSTimeInterval)timeout {
+    self.deviceRequest->setTimeout(timeout);
+}
 #pragma mark - Methods
 - (void) selectDeviceInSupportedList: (NSString *) device {
-    if (!self.supportedDevices) {
+    if (!_supportedDevices) {
         return;
     }
     NSMutableArray<NSString *> *splitted = [[device componentsSeparatedByCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"() "]] mutableCopy];
@@ -321,6 +332,7 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
     NSAssert1(splitted.count == 2 || splitted.count == 1, @"Expected only 1 or 2 elements in array. Actual: %@", @(splitted.count));
     self.deviceRequest->setDeviceInfo(func(splitted.lastObject.asciiString));
     self.deviceRequest->writeBuildManifestToFile(*self.parsedDeviceVersion);
+    _supportedDevices = nil;
 }
 - (nullable NSString *) fetchSHSHBlobsWithError: (NSError *__autoreleasing *__nullable) error {
     const auto connectionError = self.firmwareURLError;

@@ -125,14 +125,14 @@ std::string iDeviceTSSRequest::temporaryDirectoryPath = std::string();
 #pragma mark - Constr. & Destr.
 iDeviceTSSRequest::iDeviceTSSRequest(const char *firmwareURL, DeviceInfo_ptr deviceInfo, uint64_t ecid) {
     this->generator[0] = '\0';
-    this->userData = new TSSCustomUserData((TSSBoolean *)&this->connectionCanceled);
+    this->userData = new TSSCustomUserData(&this->connectionCanceled);
     this->deviceInfo = deviceInfo;
     cStringCopier(firmwareURL, this->firmwareURL);
     this->setECID(ecid);
 }
 iDeviceTSSRequest::~iDeviceTSSRequest() noexcept {
-    delete [] this->apnonce;
-    delete [] this->sepnonce;
+    delete this->apnonce;
+    delete this->sepnonce;
     delete [] this->firmwareURL;
     safeFreeContainer(this->buildManifest);
     delete this->supportedDeviceModelList;
@@ -151,7 +151,7 @@ bool iDeviceTSSRequest::setApNonce(const char *nonce) {
         return false;
     }
     if (!nonce) {
-        delete [] this->apnonce;
+        delete this->apnonce;
         this->apnonce = nullptr;
         return true;
     }
@@ -161,7 +161,7 @@ bool iDeviceTSSRequest::setApNonce(const char *nonce) {
         free(parsedNonce);
         return false;
     }
-    delete [] this->apnonce;
+    delete this->apnonce;
     this->apnonce = new Nonce(parsedNonce, length);
     free(parsedNonce);
 
@@ -175,7 +175,7 @@ bool iDeviceTSSRequest::setSepNonce(const char *nonce) {
         return false;
     }
     if (!nonce) {
-        delete [] this->sepnonce;
+        delete this->sepnonce;
         this->sepnonce = nullptr;
         return true;
     }
@@ -186,7 +186,7 @@ bool iDeviceTSSRequest::setSepNonce(const char *nonce) {
         return false;
     }
 
-    delete [] this->sepnonce;
+    delete this->sepnonce;
     this->sepnonce = new Nonce(parsedNonce, length);
     free(parsedNonce);
     return true;
@@ -219,7 +219,7 @@ void iDeviceTSSRequest::setDeviceInfo(DeviceInfo_ptr deviceInfo) {
 void iDeviceTSSRequest::setFirmwareURL(const char *firmwareURL) {
     safeFreeContainer(this->buildManifest);
     this->loadedManifestIdentifier = 0;
-    delete [] this->firmwareURL;
+    delete this->firmwareURL;
     cStringCopier(firmwareURL, this->firmwareURL);
 }
 void iDeviceTSSRequest::setECID(uint64_t ecid) {
@@ -236,6 +236,15 @@ void iDeviceTSSRequest::setECID(uint64_t ecid) {
 void iDeviceTSSRequest::setDelegate(void *userData, void (*messageCall)(void *, const char *)) const {
     this->userData->messageCall = messageCall;
     this->userData->userData = userData;
+}
+double iDeviceTSSRequest::getTimeout() const {
+    return this->userData->timeout;
+}
+void iDeviceTSSRequest::setTimeout(double timeout) {
+    if (timeout < 0) {
+        timeout = 0;
+    }
+    this->userData->timeout = timeout;
 }
 #pragma mark - Methods
 // do NOT free returned value nor plist_t inside;
@@ -357,10 +366,10 @@ bool iDeviceTSSRequest::isCurrentBuildManifestSigned(const DeviceVersion &versio
         // provided by tss or user-specified, (64-bit devices only), sepnonce is requested.
         {this->sepnonce ? this->sepnonce->internalNonce : nullptr, this->sepnonce ? this->sepnonce->parsedSize : 1},
         this->generator,
-//        this->deviceInfo->basebandCertID,
-//        this->deviceInfo->bbsnumSize
     };
     const int isSigned = isBuildIdentitySignedForDevice(this->matchedBuildIdentity, &device, nullptr, this->userData);
+    free(device.apnonce.buffer);
+    free(device.sepnonce.buffer);
     if (isSigned < 0) {
         fillOptionalUnknownErrMsg(this->userData->errorMessage);
         throw TSSRequestError(this->userData->errorCode == 0 ? TSSRequestError::TSSRequestErrorCode::Unknown_Error : this->userData->errorCode, this->userData->errorMessage);
@@ -380,8 +389,6 @@ StringBufferContainer iDeviceTSSRequest::getShshblobsData(const DeviceVersion &v
         // provided by tss or user-specified, (64-bit devices only), sepnonce is requested.
         {this->sepnonce ? this->sepnonce->internalNonce : nullptr, this->sepnonce ? this->sepnonce->parsedSize : 1},
         this->generator,
-//        this->deviceInfo->basebandCertID,
-//        this->deviceInfo->bbsnumSize
     };
     TSSDataBuffer buffer;
     const BuildIdentity *identity = this->getMatchedIdentitiesFromBuildManifest(version);
@@ -395,10 +402,12 @@ StringBufferContainer iDeviceTSSRequest::getShshblobsData(const DeviceVersion &v
             }
             // sepnonce is reset every time.
             if (device.sepnonce.buffer) {
-                delete [] this->sepnonce;
+                delete this->sepnonce;
                 this->sepnonce = new Nonce(device.sepnonce.buffer, device.sepnonce.length);
             }
         }
+        free(device.apnonce.buffer);
+        free(device.sepnonce.buffer);
     }
     else {
         error("Failed to retrieve BuildManifest. Abort.\n");

@@ -17,7 +17,7 @@ typedef NS_ENUM(NSInteger, TSSFirmwareSigningStatus) {
 NS_ASSUME_NONNULL_BEGIN
 
 FOUNDATION_EXTERN NSString *const TSSRequestErrorDomain;
-
+FOUNDATION_EXTERN NSString *const TSSTimeoutPreferencesKey;
 @class TSSRequest;
 @protocol TSSRequestDelegate <NSObject>
 - (void) request: (TSSRequest *) request sendMessageOutput: (NSString *) output;
@@ -29,6 +29,8 @@ FOUNDATION_EXTERN NSString *const TSSRequestErrorDomain;
 @property (readonly, nonatomic, getter=isOTAVersion) BOOL otaVersion;
 
 @property (weak, nonatomic) id<TSSRequestDelegate> delegate;
+// default is 0 which is unlimited. The unit is second.
+@property (nonatomic) NSTimeInterval timeout;
 // nonnull only if valid firmware url and device board is nonnull when init, and a device is selected.
 @property (readonly, copy, nonatomic, nullable) NSString *deviceModel, *deviceBoardConfig, *version, *buildID;
 // nonnull if device board is undetermined (nil) when init.

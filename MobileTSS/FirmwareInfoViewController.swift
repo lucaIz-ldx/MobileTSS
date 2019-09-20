@@ -11,19 +11,12 @@ class FirmwareInfoViewController: UIViewController, UITableViewDataSource, UITab
 
     var firmwareInfo: CustomFirmwareTableViewController.CustomRequest! {
         didSet {
-            self.displayedKeys = [JsonKeys.identifier_Key, "Board", JsonKeys.version_Key, JsonKeys.buildid_Key]
-            self.displayedValue = [firmwareInfo.deviceModel, firmwareInfo.deviceBoard, firmwareInfo.version, firmwareInfo.buildID]
-            if let releaseDate = (self.firmwareInfo as? TSSViewController.FirmwareInfo)?.releaseDate {
-                self.displayedKeys.append(JsonKeys.releasedate_Key)
-                self.displayedValue.append(releaseDate)
-            }
+            self.displayedInfo = firmwareInfo.visibleInfoDictionary
         }
     }
-    var displayedValue: [String]!
+    var displayedInfo: [(String, String)]!
     let headerViewHeight: CGFloat = 50
-    
-    var displayedKeys: [String]!
-    
+
     weak var progressOutputVC: ProgressOutputViewController?
     
     @IBOutlet var tableView: UITableView!
@@ -40,7 +33,7 @@ class FirmwareInfoViewController: UIViewController, UITableViewDataSource, UITab
         return 2
     }
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return section == 0 ? self.displayedKeys.count : (self.firmwareInfo.status.currentStatus == .Signed ? 2 : 1)
+        return section == 0 ? self.displayedInfo.count : (self.firmwareInfo.status.currentStatus == .Signed ? 2 : 1)
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -74,8 +67,8 @@ class FirmwareInfoViewController: UIViewController, UITableViewDataSource, UITab
 
     func firmwareInfoCellConfigure(_ cell: FirmwareInfoTableViewCell, At indexPath: IndexPath) {
         // display firmware info
-        cell.identifierText = self.displayedKeys[indexPath.row]
-        cell.contentText = self.displayedValue[indexPath.row]
+        cell.identifierText = self.displayedInfo[indexPath.row].0
+        cell.contentText = self.displayedInfo[indexPath.row].1
     }
     func statusLabelCellConfigure(_ cell: StatusLabelTableViewCell, At indexPath: IndexPath) {
         // sign status
@@ -100,8 +93,10 @@ class FirmwareInfoViewController: UIViewController, UITableViewDataSource, UITab
         if let localECID = TSSRequest.localECID, localECID.isEmpty == false {
             let request = TSSRequest(firmwareURL: self.firmwareInfo.buildManifestURL, deviceBoardConfiguration: GlobalConstants.localDeviceBoard, ecid: localECID)
             request.delegate = self
+            request.timeout = 7
             let customAPNonceList = NSArray(contentsOfFile: GlobalConstants.customAPNonceGenListFilePath) as? [[String : String]]
-            if isCurrentDeviceNonceEntanglingEnabled() && customAPNonceList?.isEmpty ?? true {
+
+            if isCurrentDeviceNonceEntanglingEnabled() && customAPNonceList?.first(where: {$0[CustomAPGenKey.APNonce_Key] != nil && $0[CustomAPGenKey.Generator_Key] != nil}) == nil {
                 let alertView = UIAlertController(title: "Error", message: "A12(X) and above devices need specific nonce and generator pair to save blobs due to nonce entangling. Please add at least one pair in preferences.", preferredStyle: .alert)
                 alertView.addAction(UIAlertAction(title: "OK", style: .cancel))
                 self.present(alertView, animated: true)
@@ -116,6 +111,9 @@ class FirmwareInfoViewController: UIViewController, UITableViewDataSource, UITab
                     self.progressOutputVC?.present(alertView, animated: true)
                 }
                 if var customAPNonceList = customAPNonceList, !customAPNonceList.isEmpty {
+                    if isCurrentDeviceNonceEntanglingEnabled() {
+                       customAPNonceList = customAPNonceList.filter {$0[CustomAPGenKey.APNonce_Key] != nil && $0[CustomAPGenKey.Generator_Key] != nil}
+                    }
                     DispatchQueue.global().async {
                         var numOfSuccess = 0
                         while customAPNonceList.count > 0 {

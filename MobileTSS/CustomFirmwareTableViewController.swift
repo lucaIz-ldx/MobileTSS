@@ -38,6 +38,10 @@ class CustomFirmwareTableViewController: UITableViewController {
         var label: String?
         fileprivate(set) var status: FetchedTSSResult
 
+        var visibleInfoDictionary: [(String, String)] {
+            return Array(zip([JsonKeys.identifier_Key, "Board", JsonKeys.version_Key, JsonKeys.buildid_Key], [self.deviceModel, self.deviceBoard, self.version, self.buildID]))
+        }
+
         fileprivate var archivableDictionary: [String : Any] {
             var dict = [CustomRequest.ArchivableKeys.BuildManifestURL_Key: self.buildManifestURL,
                         CustomRequest.ArchivableKeys.BuildID_Key: self.buildID,
@@ -162,8 +166,8 @@ class CustomFirmwareTableViewController: UITableViewController {
             DispatchQueue.global(qos: .userInitiated).async(group: group) {
                 let request = TSSRequest(firmwareURL: customRequest.buildManifestURL, deviceBoardConfiguration: customRequest.deviceBoard)
                 var error: NSError?
-                let timeout : TimeInterval = 8
-                // Each request must finish within 8 seconds to avoid being killed by watchdog.
+                let timeout: TimeInterval = 15
+                // Each request must finish within 15 seconds to avoid being killed by watchdog.
                 serialQueue.asyncAfter(deadline: .now() + timeout, execute: {
                     request.cancelGlobalConnection()
                 })
@@ -336,17 +340,25 @@ class CustomFirmwareTableViewController: UITableViewController {
     }
 
     @IBAction private func addButtonTriggered(_ sender: UIBarButtonItem) {
-        let alertView = UIAlertController(title: "", message: "Enter a URL for iOS Firmware/OTA: ", preferredStyle: .alert)
-        alertView.addTextField { (textField) in
-            textField.placeholder = "BuildManifest URL"
-            textField.keyboardType = .URL
-            textField.clearButtonMode = .always
-        }
-        alertView.addAction(.init(title: "Cancel", style: .cancel))
-        alertView.addAction(.init(title: "OK", style: .default, handler: { [unowned alertView] (_) in
-            self.loadFirmwareURLString((alertView.textFields?.first?.text)!)
+        let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        actionSheet.addAction(UIAlertAction(title: "Select from table", style: .default, handler: { (_) in
+            self.performSegue(withIdentifier: "ToSelectFirmware", sender: self)
         }))
-        self.present(alertView, animated: true)
+        actionSheet.addAction(UIAlertAction(title: "Enter URL manually", style: .default, handler: { (_) in
+            let alertView = UIAlertController(title: "", message: "Enter a URL for iOS Firmware/OTA: ", preferredStyle: .alert)
+            alertView.addTextField { (textField) in
+                textField.placeholder = "BuildManifest URL"
+                textField.keyboardType = .URL
+                textField.clearButtonMode = .always
+            }
+            alertView.addAction(.init(title: "Cancel", style: .cancel))
+            alertView.addAction(.init(title: "OK", style: .default, handler: { [unowned alertView] (_) in
+                self.loadFirmwareURLString((alertView.textFields?.first?.text)!)
+            }))
+            self.present(alertView, animated: true)
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        self.present(actionSheet, animated: true)
     }
     @discardableResult
     @objc private func saveListData(_ sender: Any?) -> Bool {
@@ -374,6 +386,10 @@ class CustomFirmwareTableViewController: UITableViewController {
             cfivc.firmwareInfo = self.storedCustomRequest[indexPath.row]
             cfivc.delegate = self
             cfivc.indexInPreviousTableView = indexPath
+        }
+        else if let sftvc = (segue.destination as? UINavigationController)?.viewControllers.first as? SelectFirmwareTableViewController {
+            sftvc.actionAfterAppeared = sftvc.loadListAllDevices
+            sftvc.loadFirmwareActionBlock = self.loadFirmwareURLString
         }
     }
     deinit {

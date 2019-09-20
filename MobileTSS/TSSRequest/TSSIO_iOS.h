@@ -64,8 +64,9 @@ struct TSSCustomUserData {
     char buffer[1024];
     char errorMessage[132];
     const TSSBoolean *signal;
+    double timeout;
 #ifdef __cplusplus
-    TSSCustomUserData(const TSSBoolean *sig = nullptr, int err = 0, MessagingPrototype resrv = nullptr) noexcept : signal(sig), errorCode(err), messageCall(resrv) {}
+    TSSCustomUserData(const TSSBoolean *sig = nullptr, int err = 0, MessagingPrototype resrv = nullptr, double _timeout = 0) noexcept : signal(sig), errorCode(err), messageCall(resrv), timeout(_timeout) {}
 #endif
 };
 #ifndef __cplusplus

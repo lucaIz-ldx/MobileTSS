@@ -1046,13 +1046,13 @@ static int tss_request_send_raw(const char *request, const char* server_url_stri
             curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
             curl_easy_setopt(handle, CURLOPT_PROGRESSDATA, userData);
         }
+        if (userData && userData->timeout != 0) {
+            const long connection_timeout = userData->timeout;
+            const long total_transfer_timeout = 3 + userData->timeout;
 
-        static const long connection_timeout = 5;  // must reach Apple TSS Server in 5 sec.
-        static const long total_transfer_timeout = 10;
-
-        curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, connection_timeout);
-        curl_easy_setopt(handle, CURLOPT_TIMEOUT, total_transfer_timeout);
-
+            curl_easy_setopt(handle, CURLOPT_CONNECTTIMEOUT, connection_timeout);
+            curl_easy_setopt(handle, CURLOPT_TIMEOUT, total_transfer_timeout);
+        }
         if (server_url_string) {
             curl_easy_setopt(handle, CURLOPT_URL, server_url_string);
         } else {

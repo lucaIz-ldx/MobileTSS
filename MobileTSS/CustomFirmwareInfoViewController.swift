@@ -25,13 +25,16 @@ class CustomFirmwareInfoViewController: FirmwareInfoViewController {
     override func viewDidLoad() {
         super.tableView = self.customInfoTableView
         super.viewDidLoad()
-        self.displayedKeys.append(CustomFirmwareTableViewController.CustomRequest.ArchivableKeys.Label_Key)
-        self.displayedValue.append(self.firmwareInfo.label ?? "")
+    }
+    override var firmwareInfo: CustomFirmwareTableViewController.CustomRequest! {
+        didSet {
+            self.displayedInfo.append((CustomFirmwareTableViewController.CustomRequest.ArchivableKeys.Label_Key, self.firmwareInfo.label ?? ""))
+        }
     }
 
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if section == 0 {
-            return self.displayedKeys.count
+            return self.displayedInfo.count
         }
         return (self.firmwareInfo.status.currentStatus == .Signed && self.firmwareInfo.deviceBoard != GlobalConstants.localDeviceBoard) || (self.firmwareInfo.status.currentStatus == .Not_Signed) ? 1 : 2
     }
@@ -44,7 +47,7 @@ class CustomFirmwareInfoViewController: FirmwareInfoViewController {
     }
 
     override func firmwareInfoCellConfigure(_ cell: FirmwareInfoTableViewCell, At indexPath: IndexPath) {
-        if self.displayedKeys[indexPath.row] == CustomFirmwareTableViewController.CustomRequest.ArchivableKeys.Label_Key {
+        if self.displayedInfo[indexPath.row].0 == CustomFirmwareTableViewController.CustomRequest.ArchivableKeys.Label_Key {
             cell.rvalueEditable = true
             cell.contentTextField?.delegate = self
         }

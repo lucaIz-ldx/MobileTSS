@@ -28,7 +28,7 @@ struct DeviceInfo {
     const char *deviceBoardConfiguration;
     uint64_t _basebandCertID;
     size_t _bbsnumSize;
-    const unsigned char *__nullable bbsnum;
+//    const unsigned char *__nullable bbsnum;
 //    unsigned int basebandChipID;
 //    unsigned int basebandSerialNumber;
 };
@@ -48,6 +48,7 @@ extern "C" {
     DeviceInfo_ptr __nullable findDeviceInfoForSpecifiedConfiguration(const char *deviceConfiguration);
     void findAllDeviceInfosForSpecifiedModel(const char *deviceModel, DeviceInfo_ptr __nullable *__nonnull array, size_t arraySize) NS_SWIFT_UNAVAILABLE("");
 
+    void updateDatabase(void);
 //    void setLocalDeviceBasebandCertID(uint64_t certID);
 //    void setLocalDeviceBasebandSerialNumberSize(size_t size);
 //    bool hasCellularCapability(void);

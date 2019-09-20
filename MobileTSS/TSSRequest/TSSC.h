@@ -21,8 +21,8 @@ typedef struct {
     TSSDataBuffer apnonce;
     TSSDataBuffer sepnonce;
     char *generator;    // must be nonnull
-    uint64_t basebandCertID;
-    size_t bbsnumSize;
+//    uint64_t basebandCertID;
+//    size_t bbsnumSize;
 } DeviceInfo_BridgedCStruct;
 
 struct BuildIdentity {
