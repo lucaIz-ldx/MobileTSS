@@ -25,15 +25,15 @@ typedef struct {
     uint32_t size_uncompressed;
     uint16_t len_filename;
     uint16_t len_extra_field;
-    char filename[1]; //variable length
+//    char filename[]; //variable length
 //    char extra_field[]; //variable length
-} ATTRIBUTE_PACKED fragentzip_local_file;
+} ATTRIBUTE_PACKED fragmentzip_local_file_header;
 
-typedef struct{
-    uint32_t crc32;
-    uint32_t size_compressed;
-    uint32_t size_uncompressed;
-} ATTRIBUTE_PACKED fragmentzip_data_descriptor;
+//typedef struct{
+//    uint32_t crc32;
+//    uint32_t size_compressed;
+//    uint32_t size_uncompressed;
+//} ATTRIBUTE_PACKED fragmentzip_data_descriptor;
 
 typedef struct{
     uint32_t signature;
@@ -67,6 +67,15 @@ typedef struct{
     uint32_t num_of_disk;
 } ATTRIBUTE_PACKED fragmentzip64_end_of_cd_locator;
 
+struct Fragmentzip_extraField_64 {
+    uint16_t tag;
+    uint16_t size;  // the size for extra field minus tag and self (-4)
+    uint64_t original_uncompressed_fileSize;
+    uint64_t compressed_fileSize;
+    uint64_t relative_header_offset;
+} ATTRIBUTE_PACKED;
+typedef struct Fragmentzip_extraField_64 Fragmentzip_extraField_64;
+
 typedef struct{
     uint32_t signature;
     uint16_t version;
@@ -97,14 +106,7 @@ struct fragmentzip_info {
     fragmentzip_cd *cd;
     uint64_t entries_in_zip;
 };
-struct Fragmentzip_extraField_64 {
-    uint16_t tag;
-    uint16_t size;  // the size for extra field minus tag and self (-4)
-    uint64_t original_uncompressed_fileSize;
-    uint64_t compressed_fileSize;
-    uint64_t relative_header_offset;
-} ATTRIBUTE_PACKED;
-typedef struct Fragmentzip_extraField_64 Fragmentzip_extraField_64;
+
 #define CASSERT(predicate, file) _impl_CASSERT_LINE(predicate,__LINE__,file)
 
 #define _impl_PASTE(a,b) a##b
@@ -144,6 +146,7 @@ static size_t downloadFunction(void* data, size_t size, size_t nmemb, t_download
     return vsize;
 }
 CASSERT(sizeof(fragmentzip64_end_of_cd_record) == 56, fragmentzip64_end_of_cd_record_size_is_not_56);
+CASSERT(sizeof(fragmentzip_local_file_header) == 30, fragmentzip_local_file_header_size_is_not_29);
 CASSERT(sizeof(fragmentzip64_end_of_cd_locator) == 20, fragmentzip64_end_of_cd_locator_size_is_not_20);
 CASSERT(sizeof(fragmentzip_cd) == 46, fragmentzip_cd_size_is_wrong);
 CASSERT(sizeof(fragmentzip_end_of_cd) == 22, fragmentzip_end_of_cd_size_is_wrong);
@@ -318,7 +321,7 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
     log_console("[CURL] downloading from URL...\n");
 
     t_downloadBuffer compressed = {0};
-    fragentzip_local_file *lfile = NULL;
+    fragmentzip_local_file_header *lfile = NULL;
     char *uncompressed = NULL;
 
     fragmentzip_cd *rfile = NULL;
@@ -335,22 +338,28 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
 
     compressed.callback = callback;
     
-    retassure(-3,compressed.buf = malloc(compressed.size_buf = sizeof(fragentzip_local_file) - 1));
+    retassure(-3,compressed.buf = malloc(compressed.size_buf = sizeof(fragmentzip_local_file_header)));
     
     char downloadRange[100] = {0};
-    uint64_t headerOffset = 0, compressedSize = 0, uncompressedSize = 0;
+    uint64_t headerOffset = rfile->local_header_offset, compressedSize = rfile->size_compressed, uncompressedSize = rfile->size_uncompressed;
     if (rfile->pkzip_version_needed >= 45) {
         // zip64 format
         Fragmentzip_extraField_64 *field = (Fragmentzip_extraField_64 *)(rfile->filename + rfile->len_filename);
-        retassure(-2, field->tag == 0x1 && field->size == sizeof(field->original_uncompressed_fileSize) + sizeof(field->compressed_fileSize) + sizeof(field->relative_header_offset));
-        headerOffset = field->relative_header_offset;
-        compressedSize = field->compressed_fileSize;
-        uncompressedSize = field->original_uncompressed_fileSize;
-    }
-    else {
-        headerOffset = rfile->local_header_offset;
-        compressedSize = rfile->size_compressed;
-        uncompressedSize = rfile->size_uncompressed;
+        retassure(-2, field->tag == 0x1);   // unidentified zip ext. data tag
+        switch (field->size) {
+            // sizeof(field->original_uncompressed_fileSize) + sizeof(field->compressed_fileSize) + sizeof(field->relative_header_offset)
+            case 24:
+                headerOffset = field->relative_header_offset;
+            // sizeof(field->original_uncompressed_fileSize) + sizeof(field->compressed_fileSize)
+            case 16:
+                compressedSize = field->compressed_fileSize;
+                uncompressedSize = field->original_uncompressed_fileSize;
+                break;
+            default:
+                writeErrorMsg("Incorrect zip extensible data size.");
+                err = -2;
+                goto error;
+        }
     }
     snprintf(downloadRange, sizeof(downloadRange), "%llu-%llu",headerOffset, (headerOffset + compressed.size_buf - 1));
     
@@ -361,12 +370,12 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
     
     retassure(-5,strncmp(compressed.buf, "\x50\x4b\x03\x04", 4) == 0);
     
-    lfile = (fragentzip_local_file *)compressed.buf;
+    lfile = (fragmentzip_local_file_header *)compressed.buf;
     compressed.buf = NULL;
 
     reinit_downloadBuffer(&compressed, compressedSize);
 
-    const uint64_t start = headerOffset + sizeof(fragentzip_local_file) - 1 + lfile->len_filename + lfile->len_extra_field;
+    const uint64_t start = headerOffset + sizeof(fragmentzip_local_file_header) + lfile->len_filename + lfile->len_extra_field;
     snprintf(downloadRange, sizeof(downloadRange), "%llu-%llu",start, start + compressed.size_buf - 1);
     curl_easy_setopt(info->mcurl, CURLOPT_RANGE, downloadRange);
     

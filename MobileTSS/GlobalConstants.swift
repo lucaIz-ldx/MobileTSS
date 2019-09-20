@@ -59,14 +59,14 @@ struct GlobalConstants {
 //        return directoryPath + "/CustomAPNoncesWithGen.plist"
 //    }()
 
-        static let buildManifestDirectoryPath: String = {
-            let directoryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/BuildManifests/"
-            try! FileManager.default.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
-            return directoryPath
-        }()
-        static let documentsDirectoryPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] + "/"
-        static let customRequestDataFilePath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/CustomRequest.plist"
-        static let customAPNonceGenListFilePath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/CustomAPNoncesWithGen.plist"
+    static let buildManifestDirectoryPath: String = {
+        let directoryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/BuildManifests/"
+        try! FileManager.default.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
+        return directoryPath
+    }()
+    static let documentsDirectoryPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] + "/"
+    static let customRequestDataFilePath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/CustomRequest.plist"
+    static let customAPNonceGenListFilePath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/CustomAPNoncesWithGen.plist"
 
     static let localProductType = String(cString: getLocalDeviceInfo().pointee.deviceModel)
     static let localDeviceBoard = String(cString: getLocalDeviceInfo().pointee.deviceBoardConfiguration)

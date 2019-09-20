@@ -25,6 +25,7 @@ FOUNDATION_EXTERN NSString *const TSSTimeoutPreferencesKey;
 
 @interface TSSRequest : NSObject
 @property (class, readonly, copy, nonatomic, nullable) NSString *localECID;
+@property (class, copy, nonatomic, nullable) NSString *savingDestination;
 
 @property (readonly, nonatomic, getter=isOTAVersion) BOOL otaVersion;
 

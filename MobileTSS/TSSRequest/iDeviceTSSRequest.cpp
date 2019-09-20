@@ -449,11 +449,14 @@ OpaqueBufferContainer *iDeviceTSSRequest::downloadXMLBuildManifest(const DeviceV
             break;
         }
         else {
-            warning("Failed to download BuildManifest.\n");
             free(buffer.buffer);
             buffer.buffer = nullptr;
             if (downloadingTimes != 2) {
+                warning("Failed to download BuildManifest.\n");
                 info("Retrying to download...\n");
+            }
+            else {
+                error("Failed to download BuildManifest.\n");
             }
         }
     }

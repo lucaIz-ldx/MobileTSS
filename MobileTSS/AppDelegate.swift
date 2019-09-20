@@ -90,6 +90,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             application.applicationIconBadgeNumber = 0
         }
         TSSRequest.setBuildManifestStorageLocation(GlobalConstants.buildManifestDirectoryPath)
+        TSSRequest.savingDestination = GlobalConstants.documentsDirectoryPath
         #if DEBUG
         print(GlobalConstants.documentsDirectoryPath)
         #endif

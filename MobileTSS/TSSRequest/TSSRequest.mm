@@ -135,6 +135,13 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
     }
     return YES;
 }
+static NSString *path;
++ (NSString *) savingDestination {
+    return path;
+}
++ (void) setSavingDestination:(NSString *)savingDestination {
+    path = savingDestination;
+}
 #pragma mark - Init
 - (instancetype) initWithFirmwareURL: (NSString *) urlInString {
     return [self initWithFirmwareURL:urlInString DeviceBoardConfiguration:nil Ecid:nil];
@@ -352,8 +359,9 @@ extern "C" size_t apNonceLengthForDeviceModel(const char *);
         SET_ERROR_CODE_LOCALIZED(-99, @"User has canceled request.");
         return nil;
     }
+    NSAssert(TSSRequest.savingDestination != nil, @"Destination is not set.");
     // fileName: ecid_model_board_version-buildid_apnonce.shsh2
-    NSString *filePath = [NSString stringWithFormat:@"%@/%@_%@_%@_%s_%s.shsh2", NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES)[0], self.ecid, self.deviceModel, self.deviceBoardConfig, (self.OTADeviceVersion ? self.OTADeviceVersion : self.parsedDeviceVersion)->description().c_str(), self.deviceRequest->getApNonce()];
+    NSString *filePath = [TSSRequest.savingDestination stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_%@_%@_%s_%s.shsh2", self.ecid, self.deviceModel, self.deviceBoardConfig, (self.OTADeviceVersion ? self.OTADeviceVersion : self.parsedDeviceVersion)->description().c_str(), self.deviceRequest->getApNonce()]];
     FILE *f = fopen(filePath.asciiString, "w");
     if (!f || fwrite(shshDataInBufferContainer.buffer, sizeof(char), shshDataInBufferContainer.length, f) != shshDataInBufferContainer.length * sizeof(char)) {
         SET_ERROR_CODE_LOCALIZED(-3, @"An error has occurred when writing shsh data to destination.");
