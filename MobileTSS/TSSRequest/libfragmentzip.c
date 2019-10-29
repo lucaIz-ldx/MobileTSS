@@ -11,7 +11,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <zlib.h>
-#include <assert.h>
 
 typedef struct {
     uint32_t signature;
@@ -113,8 +112,8 @@ struct fragmentzip_info {
 #define _impl_CASSERT_LINE(predicate, line, file) \
 typedef char _impl_PASTE(assertion_failed_##file##_,line)[2*!!(predicate)-1];
 
-#define assure(a) do{ if ((a) == 0){err=1; goto error;} }while(0)
-#define retassure(retcode, a) do{ if ((a) == 0){err=retcode; goto error;} }while(0)
+#define retassure(cond, code, msg...) do{ if ((cond) == 0){err=code; error(msg); writeErrorMsg(msg); goto error;} }while(0)
+#define assure(cond) do{ if ((cond) == 0){err=Other_Error; goto error;} } while(0)
 
 #define fragmentzip_nextCD(cd) ((fragmentzip_cd *)(cd->filename+cd->len_filename+cd->len_extra_field+cd->len_file_comment))
 
@@ -146,7 +145,7 @@ static size_t downloadFunction(void* data, size_t size, size_t nmemb, t_download
     return vsize;
 }
 CASSERT(sizeof(fragmentzip64_end_of_cd_record) == 56, fragmentzip64_end_of_cd_record_size_is_not_56);
-CASSERT(sizeof(fragmentzip_local_file_header) == 30, fragmentzip_local_file_header_size_is_not_29);
+CASSERT(sizeof(fragmentzip_local_file_header) == 30, fragmentzip_local_file_header_size_is_not_30);
 CASSERT(sizeof(fragmentzip64_end_of_cd_locator) == 20, fragmentzip64_end_of_cd_locator_size_is_not_20);
 CASSERT(sizeof(fragmentzip_cd) == 46, fragmentzip_cd_size_is_wrong);
 CASSERT(sizeof(fragmentzip_end_of_cd) == 22, fragmentzip_end_of_cd_size_is_wrong);
@@ -185,16 +184,21 @@ static inline void reinit_downloadBuffer(t_downloadBuffer *buffer, size_t size) 
     buffer->size_buf = size;
     buffer->buf = malloc(size);
 }
+enum Error_Code {
+    No_Error = 0,
+    Incorrect_Signature = -1,
+    File_Not_Found = -2,
+    Other_Error = -99,
+};
 static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TSSCustomUserData *userData) {
-    int err = 0;
+    enum Error_Code err = No_Error;
     fragmentzip_t *info = NULL;
     t_downloadBuffer downloadbuffer = {0};
-//    fragmentzip_end_of_cd *cde = NULL;
     assure(info = calloc(1, sizeof(fragmentzip_t)));
 
     assure(info->url = strdup(url));
-    
     assure(info->mcurl = mcurl);
+
     if (userData && userData->timeout != 0) {
         const long connection_timeout = userData->timeout;
         const long total_transfer_timeout = connection_timeout + 10;  // buildmanifest should not take more than 10 + connection_timeout sec. to get.
@@ -208,8 +212,8 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
     curl_easy_setopt(info->mcurl, CURLOPT_PRIVATE, &downloadbuffer);
 
     {
-        static const char *userAgent[] = {"Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit/604.1.38 (KHTML, like Gecko) Version/11.0 Mobile/15A372 Safari/604.1",
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"};
+        static const char *userAgent[] = {"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0 Safari/605.1.15",
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 13_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0 Mobile/15E148 Safari/604.1"};
         curl_easy_setopt(info->mcurl, CURLOPT_USERAGENT, userAgent[arc4random_uniform(sizeof(userAgent)/sizeof(userAgent[0]))]);
     }
 
@@ -222,19 +226,16 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
     assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
     
     curl_easy_getinfo(info->mcurl, CURLINFO_CONTENT_LENGTH_DOWNLOAD_T, &info->length);
-    if (info->length <= 0) {
-        err = 1;
-        writeErrorMsg("Requested resource is unavailable.");
-        goto error;
-    }
-    assure(info->length > sizeof(fragmentzip_end_of_cd));
+    retassure(info->length > 0, Other_Error, "Requested resource is unavailable.");
+
+    retassure(info->length > sizeof(fragmentzip_end_of_cd), Other_Error, "Invalid zip format.");
     
     //get end of central directory
-    assure(downloadbuffer.buf = malloc(downloadbuffer.size_buf = sizeof(fragmentzip_end_of_cd)));
-    
+    reinit_downloadBuffer(&downloadbuffer, sizeof(fragmentzip_end_of_cd));
+
     curl_easy_setopt(info->mcurl, CURLOPT_WRITEFUNCTION, &downloadFunction);
     curl_easy_setopt(info->mcurl, CURLOPT_WRITEDATA, &downloadbuffer);
-    
+
     char downloadRange[100] = {0};
     snprintf(downloadRange, sizeof(downloadRange), "%llu-%llu",info->length - sizeof(fragmentzip_end_of_cd), info->length-1);
     
@@ -244,7 +245,7 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
     log_console("[CURL] preparing to download from URL (2/3)...\n");
     assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
 
-    assure(strncmp(downloadbuffer.buf, "\x50\x4b\x05\x06", 4) == 0);
+    retassure(strncmp(downloadbuffer.buf, "\x50\x4b\x05\x06", 4) == 0, Incorrect_Signature, "Incorrect zip header signature.");
     
     uint64_t cd_start_offset = 0;
     if (((fragmentzip_end_of_cd *)downloadbuffer.buf)->cd_start_offset == 0xffffffff) {
@@ -256,7 +257,7 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
         curl_easy_setopt(info->mcurl, CURLOPT_RANGE, downloadRange);
         assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
         fragmentzip64_end_of_cd_locator *locator = (fragmentzip64_end_of_cd_locator *)downloadbuffer.buf;
-        assure(*(uint32_t *)downloadbuffer.buf == 0x07064b50);
+        retassure(*(uint32_t *)downloadbuffer.buf == 0x07064b50, -2, "Incorrect locator header signature.");
         const uint64_t record_start_offset = locator->relative_offset_of_zip64_cde_record;
 
         log_console("[CURL] Firmware is in Zip64 format. Downloading record metadata...\n");
@@ -267,7 +268,7 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
         curl_easy_setopt(info->mcurl, CURLOPT_RANGE, downloadRange);
         assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
         fragmentzip64_end_of_cd_record *record = (fragmentzip64_end_of_cd_record *)downloadbuffer.buf;
-        assure(*(uint32_t *)downloadbuffer.buf == 0x06064b50);
+        retassure(*(uint32_t *)downloadbuffer.buf == 0x06064b50, -2, "Incorrect record header signature.");
 
         cd_start_offset = record->cd_start_offset;
         info->entries_in_zip = record->total_entries;
@@ -286,8 +287,8 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
     log_console("[CURL] preparing to download from URL (3/3)...\n");
     assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
 
-    assure(strncmp(downloadbuffer.buf, "\x50\x4b\x01\x02", 4) == 0);
-    
+    retassure(strncmp(downloadbuffer.buf, "\x50\x4b\x01\x02", 4) == 0, Incorrect_Signature, "Incorrect zip header signature.");
+
     info->cd = (fragmentzip_cd *)downloadbuffer.buf;
 
 error:
@@ -305,18 +306,17 @@ fragmentzip_t *fragmentzip_open(const char *url, TSSCustomUserData *userData) {
 
 fragmentzip_cd *fragmentzip_getCDForPath(fragmentzip_t *info, const char *path){
     const size_t path_len = strlen(path);
-
     fragmentzip_cd *curr = info->cd;
-    for (int i=0; i<info->entries_in_zip; i++) {
-        if (path_len == curr->len_filename && strncmp(curr->filename, path, path_len) == 0) return curr;
+    for (int i = 0; i < info->entries_in_zip; i++) {
+        if (path_len == curr->len_filename && strncmp(curr->filename, path, path_len) == 0)
+            return curr;
         curr = fragmentzip_nextCD(curr);
     }
-
     return NULL;
 }
 
 int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDataBuffer *buffer, fragmentzip_process_callback_t callback, TSSCustomUserData *userData) {
-    int err = 0;
+    enum Error_Code err = No_Error;
 
     log_console("[CURL] downloading from URL...\n");
 
@@ -325,11 +325,7 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
     char *uncompressed = NULL;
 
     fragmentzip_cd *rfile = NULL;
-    if (!(rfile = fragmentzip_getCDForPath(info, remotepath))) {
-        writeErrorMsg("Cannot locate BuildManifest in specified URL.");
-        err = -1;
-        goto error;
-    }
+    retassure((rfile = fragmentzip_getCDForPath(info, remotepath)), Other_Error, "Cannot locate BuildManifest in specified URL.");
 
     if (!buffer) {
         // client just check availability; no buffer container passed.
@@ -338,14 +334,14 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
 
     compressed.callback = callback;
     
-    retassure(-3,compressed.buf = malloc(compressed.size_buf = sizeof(fragmentzip_local_file_header)));
+    assure(compressed.buf = malloc(compressed.size_buf = sizeof(fragmentzip_local_file_header)));
     
     char downloadRange[100] = {0};
     uint64_t headerOffset = rfile->local_header_offset, compressedSize = rfile->size_compressed, uncompressedSize = rfile->size_uncompressed;
     if (rfile->pkzip_version_needed >= 45) {
         // zip64 format
         Fragmentzip_extraField_64 *field = (Fragmentzip_extraField_64 *)(rfile->filename + rfile->len_filename);
-        retassure(-2, field->tag == 0x1);   // unidentified zip ext. data tag
+        retassure(field->tag == 0x1, Incorrect_Signature, "Invalid zip extensible data tag.");   // unidentified zip ext. data tag
         switch (field->size) {
             // sizeof(field->original_uncompressed_fileSize) + sizeof(field->compressed_fileSize) + sizeof(field->relative_header_offset)
             case 24:
@@ -356,9 +352,7 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
                 uncompressedSize = field->original_uncompressed_fileSize;
                 break;
             default:
-                writeErrorMsg("Incorrect zip extensible data size.");
-                err = -2;
-                goto error;
+                retassure(0, Incorrect_Signature, "Incorrect zip extensible data size.");
         }
     }
     snprintf(downloadRange, sizeof(downloadRange), "%llu-%llu",headerOffset, (headerOffset + compressed.size_buf - 1));
@@ -368,7 +362,7 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
     
     assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
     
-    retassure(-5,strncmp(compressed.buf, "\x50\x4b\x03\x04", 4) == 0);
+    retassure(strncmp(compressed.buf, "\x50\x4b\x03\x04", 4) == 0, Incorrect_Signature, "Incorrect zip header signature");
     
     lfile = (fragmentzip_local_file_header *)compressed.buf;
     compressed.buf = NULL;
@@ -381,32 +375,29 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
     
     assure(curlEasyPerformRetry(info->mcurl, 2, userData) == CURLE_OK);
     
-    retassure(-8,uncompressed = malloc(uncompressedSize));
+    assure(uncompressed = malloc(uncompressedSize));
     //file downloaded, now unpack it
     switch (lfile->compression) {
-        case 8: //defalted
+        case 8: // deflated
         {
             z_stream strm = {0};
-            retassure(-13, inflateInit2(&strm, -MAX_WBITS) >= 0);
+            retassure(inflateInit2(&strm, -MAX_WBITS) >= 0, Other_Error, "Failed to init zlib.");
             
             strm.avail_in = compressedSize;
             strm.next_in = (Bytef *)compressed.buf;
             strm.avail_out = uncompressedSize;
             strm.next_out = (Bytef *)uncompressed;
             
-            retassure(-14, inflate(&strm, Z_FINISH) > 0);
-            retassure(-9,strm.msg == NULL);
+            retassure(inflate(&strm, Z_FINISH) > 0, Other_Error, "Failed to inflate data.");
+            retassure(strm.msg == NULL, Other_Error, "An error has occurred when deflate data: %s.", strm.msg);
             inflateEnd(&strm);
         }
             break;
-            
         default:
-            writeErrorMsg("Unknown compression method.");
-            assure(0);
-            break;
+            retassure(0, Other_Error, "Unknown compression method: %d", lfile->compression);
     }
     
-    retassure(-10, crc32(0, (Bytef *)uncompressed, uncompressedSize) == rfile->crc32);
+    retassure(crc32(0, (Bytef *)uncompressed, uncompressedSize) == rfile->crc32, Other_Error, "crc32 check failed.");
     
     //file unpacked, now save it
     buffer->buffer = uncompressed;
@@ -417,7 +408,6 @@ error:
     free(compressed.buf);
     free(uncompressed);
     free(lfile);
-
     return err;
 }
 

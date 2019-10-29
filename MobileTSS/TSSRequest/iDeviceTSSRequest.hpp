@@ -56,7 +56,7 @@ class iDeviceTSSRequest {
     char *firmwareURL = nullptr;
     uint64_t ecid = 0;
     
-    mutable Nonce *apnonce = nullptr, *sepnonce = nullptr;//char *sepnonce = nullptr;
+    mutable Nonce *apnonce = nullptr, *sepnonce = nullptr;
     mutable OpaqueBufferContainer *buildManifest = nullptr;
     mutable BuildIdentity *matchedBuildIdentity = nullptr;
     mutable std::vector<DeviceInfo_ptr> *supportedDeviceModelList = nullptr;

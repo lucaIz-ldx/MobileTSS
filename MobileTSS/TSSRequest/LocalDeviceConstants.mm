@@ -30,7 +30,7 @@ namespace {
     static const int Unknown = 0;
     static const DeviceInfo localDatabase[] = {
 
-        {"iPhone2,1", "n88ap", 0, 0},
+        {"iPhone2,1", "n88ap", Unknown, Unknown},
         {"iPhone3,1", "n90ap", 257, 12},
         {"iPhone3,2", "n90bap", 257, 12},
         {"iPhone3,3", "n92ap", 2, 4},
@@ -66,8 +66,8 @@ namespace {
         {"iPhone11,8", "n841ap", 165673526, 12},
 
         {"iPhone12,1", "n104ap", Unknown, Unknown},
-//        {"iPhone12,3", "d421ap", Unknown, Unknown},
-//        {"iPhone12,5", "d421ap", Unknown, Unknown},
+        {"iPhone12,3", "d421ap", Unknown, Unknown},
+        {"iPhone12,5", "d431ap", Unknown, Unknown},
 
 
         {"iPod1,1", "n45ap", 0, 0},
@@ -81,11 +81,11 @@ namespace {
         {"iPad1,1", "k48ap", 0, 0},
         {"iPad2,1", "k93ap", 0, 0},
         {"iPad2,2", "k94ap", 257, 12},
-        {"iPad2,3", "k95ap", Unknown, Unknown},
+        {"iPad2,3", "k95ap", 257, 12},
         {"iPad2,4", "k93aap", 0, 0},
         {"iPad2,5", "p105ap", 0, 0},
-        {"iPad2,6", "p106ap", Unknown, Unknown},
-        {"iPad2,7", "p107ap", Unknown, Unknown},
+        {"iPad2,6", "p106ap", 3255536192, 4},
+        {"iPad2,7", "p107ap", 3255536192, 4},
 
         {"iPad3,1", "j1ap", 0, 0},
         {"iPad3,2", "j2ap", 4, 4},
@@ -95,13 +95,13 @@ namespace {
         {"iPad3,6", "p103ap", 3255536192, 4},
         {"iPad4,1", "j71ap", 0, 0},
         {"iPad4,2", "j72ap", 3554301762, 4},
-        {"iPad4,3", "j73ap", Unknown, Unknown},
+        {"iPad4,3", "j73ap", 3554301762, 4},
         {"iPad4,4", "j85ap", 0, 0},
         {"iPad4,5", "j86ap", 3554301762, 4},
-        {"iPad4,6", "j87ap", Unknown, Unknown},
+        {"iPad4,6", "j87ap", 3554301762, 4},
         {"iPad4,7", "j85map", 0, 0},
         {"iPad4,8", "j86map", 3554301762, 4},
-        {"iPad4,9", "j87map", Unknown, Unknown},
+        {"iPad4,9", "j87map", 3554301762, 4},
 
         {"iPad5,1", "j96ap", 0, 0},
         {"iPad5,2", "j97ap", 3840149528, 4},
@@ -123,6 +123,9 @@ namespace {
 
         {"iPad7,5", "j71bap", 0, 0},
         {"iPad7,6", "j72bap", 3840149528, 4},
+        {"iPad7,11", "j172ap", 0, 0},
+        {"iPad7,12", "j171ap", Unknown, Unknown},
+
         {"iPad8,1", "j317ap", 0, 0},
         {"iPad8,2", "j317xap", 0, 0},
         {"iPad8,3", "j318ap", 165673526, 12},
@@ -133,9 +136,9 @@ namespace {
         {"iPad8,8", "j321xap", 165673526, 12},
 
         {"iPad11,1", "j210ap", 0, 0},
-        {"iPad11,2", "j211ap", Unknown, Unknown},
+        {"iPad11,2", "j211ap", 165673526, 12},
         {"iPad11,3", "j217ap", 0, 0},
-        {"iPad11,4", "j218ap", Unknown, Unknown},
+        {"iPad11,4", "j218ap", 165673526, 12},
 
         {"AppleTV2,1", "k66ap", 0, 0},
         {"AppleTV3,1", "j33ap", 0, 0},
@@ -315,8 +318,9 @@ void updateDatabase(void) {
                                                 if (![array isKindOfClass: [NSArray class]]) {
                                                     return;
                                                 }
-                                                NSMutableArray *absentInDatabase = [NSMutableArray array];
-                                                NSArray *const identifierArray = @[@"iPhone",@"iPad",@"iPod"];
+                                                NSMutableArray<NSDictionary *> *absentInDatabase = [NSMutableArray array];
+                                                NSMutableArray<NSDictionary *> *differentInDatabase = [NSMutableArray array];
+                                                NSArray<NSString *> *const identifierArray = @[@"iPhone",@"iPad",@"iPod"];
                                                 for (NSDictionary *device in array) {
                                                     NSString *idenifier = device[@"identifier"];
                                                     bool qualified = false;
@@ -329,11 +333,20 @@ void updateDatabase(void) {
                                                     if (!qualified) {
                                                         continue;
                                                     }
-                                                    if (findDeviceInfoForSpecifiedConfiguration([device[@"boardconfig"] cStringUsingEncoding:NSASCIIStringEncoding]) == nullptr) {
+                                                    DeviceInfo_ptr deviceInfo = findDeviceInfoForSpecifiedConfiguration([device[@"boardconfig"] cStringUsingEncoding:NSASCIIStringEncoding]);
+                                                    if (deviceInfo == nullptr) {
                                                         [absentInDatabase addObject:device];
+                                                    }
+                                                    else {
+                                                        if (strcmp([device[@"boardconfig"] cStringUsingEncoding:NSASCIIStringEncoding], deviceInfo->deviceBoardConfiguration)) {
+                                                            [differentInDatabase addObject:device];
+                                                        }
                                                     }
                                                 }
                                                 NSLog(@"absentInDatabase: %@", absentInDatabase);
+                                                if (differentInDatabase.count) {
+                                                    NSLog(@"differentInDatabase: %@", differentInDatabase);
+                                                }
                                             }];
     [task resume];
 }

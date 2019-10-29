@@ -11,6 +11,11 @@
 #import "MobileGestalt.h"
 #import "iDeviceTSSRequest.hpp"
 
+#ifdef DEBIAN_PACKAGE
+#include <UIKit/UIKit.h>
+#include "MobileTSS-Swift.h"
+#endif
+
 #define SET_ERROR_CODE_LOCALIZED(errCode, msg) do {if (error){\
 *error = [NSError errorWithDomain:TSSRequestErrorDomain code:errCode userInfo:@{NSLocalizedDescriptionKey : msg}];\
 }} while (0)
@@ -50,7 +55,11 @@ static int64_t localECID = 0;
 }
 + (NSString *) localECID {
     // Read from preferences first (nil if first launch); then attempt to load from device; the last resort is to ask from user.
+#ifdef DEBIAN_PACKAGE
+    NSString *ecid = PreferencesManager.shared.ecidString;
+#else
     NSString *ecid = [[NSUserDefaults standardUserDefaults] stringForKey:@"ECID"];
+#endif
     if (!ecid) {
         CFStringRef uniqueChipID_Key = CFStringCreateWithCString(kCFAllocatorDefault, "UniqueChipID", kCFStringEncodingASCII);
         NSNumber *ecidFetchedFromDevice = (__bridge_transfer NSNumber *)MGCopyAnswer(uniqueChipID_Key);
@@ -76,9 +85,6 @@ static int64_t localECID = 0;
 #endif
     return ecid;
 }
-+ (NSString *) retrieveECIDFromLocal {
-    return TSSRequest.localECID;
-}
 + (BOOL) setECIDToPreferences: (NSString *) ecid {
     if (ecid) {
         // if ecid is provided, check its validity.
@@ -91,8 +97,12 @@ static int64_t localECID = 0;
     else {
         localECID = -1; // ignored any further requests for setting ecid if user prefers to provide it later.
     }
+#ifdef DEBIAN_PACKAGE
+    PreferencesManager.shared.ecidString = @(localECID).stringValue;
+#else
     [[NSUserDefaults standardUserDefaults] setObject:@(localECID).stringValue forKey:@"ECID"];
     [[NSUserDefaults standardUserDefaults] synchronize];
+#endif
     return YES;
 }
 + (int64_t) parseECIDInString:(NSString *)ecidInString {

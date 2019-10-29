@@ -341,6 +341,7 @@ class CustomFirmwareTableViewController: UITableViewController {
 
     @IBAction private func addButtonTriggered(_ sender: UIBarButtonItem) {
         let actionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        actionSheet.popoverPresentationController?.barButtonItem = sender
         actionSheet.addAction(UIAlertAction(title: "Select from table", style: .default, handler: { (_) in
             self.performSegue(withIdentifier: "ToSelectFirmware", sender: self)
         }))

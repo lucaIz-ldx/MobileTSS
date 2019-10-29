@@ -39,7 +39,7 @@
 //#include "config.h"
 //#endif
 
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-293.1.16"
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-698.0.5"
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 #define debug(a...)
@@ -67,6 +67,51 @@ static char *generate_guid(void)
     return guid;
 }
 #endif
+static uint8_t _plist_dict_get_bool(plist_t dict, const char *key)
+{
+    uint8_t bval = 0;
+    uint64_t uintval = 0;
+    char *strval = NULL;
+    uint64_t strsz = 0;
+    plist_t node = plist_dict_get_item(dict, key);
+    if (!node) {
+        return 0;
+    }
+    switch (plist_get_node_type(node)) {
+        case PLIST_BOOLEAN:
+            plist_get_bool_val(node, &bval);
+            break;
+        case PLIST_UINT:
+            plist_get_uint_val(node, &uintval);
+            bval = (uint8_t)uintval;
+            break;
+        case PLIST_STRING:
+            plist_get_string_val(node, &strval);
+            if (strval) {
+                if (strcmp(strval, "true") == 0) {
+                    bval = 1;
+                } else if (strcmp(strval, "false") == 0) {
+                    bval = 0;
+                }
+                free(strval);
+            }
+            break;
+        case PLIST_DATA:
+            plist_get_data_val(node, &strval, &strsz);
+            if (strval) {
+                if (strsz == 1) {
+                    bval = strval[0];
+                } else {
+                    printf("%s: ERROR: invalid size %llu for data to boolean conversion\n", __func__, strsz);
+                }
+                free(strval);
+            }
+            break;
+        default:
+            break;
+    }
+    return bval;
+}
 static int progress_callback(void *clientp, curl_off_t dltotal, curl_off_t dlnow, curl_off_t ultotal, curl_off_t ulnow) {
     return *((TSSCustomUserData *)clientp)->signal;
 }
@@ -158,6 +203,18 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
     string = NULL;
     node = NULL;
 
+    /* BMU,BoardID */
+    node = plist_dict_get_item(build_identity, "BMU,BoardID");
+    if (node) {
+        plist_dict_set_item(parameters, "BMU,BoardID", plist_copy(node));
+    }
+
+    /* BMU,ChipID */
+    node = plist_dict_get_item(build_identity, "BMU,ChipID");
+    if (node) {
+        plist_dict_set_item(parameters, "BMU,ChipID", plist_copy(node));
+    }
+
     /* BbChipID */
     int bb_chip_id = 0;
     char* bb_chip_id_string = NULL;
@@ -168,9 +225,10 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
         plist_dict_set_item(parameters, "BbChipID", plist_new_uint(bb_chip_id));
         free(bb_chip_id_string);
         bb_chip_id_string = NULL;
-    } else {
-        error("WARNING: Unable to find BbChipID node\n");
     }
+//    else {
+//        debug("NOTE: Unable to find BbChipID node\n");
+//    }
     node = NULL;
 
     /* BbProvisioningManifestKeyHash */
@@ -221,9 +279,10 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
     node = plist_dict_get_item(build_identity, "BbSkeyId");
     if (node && plist_get_node_type(node) == PLIST_DATA) {
         plist_dict_set_item(parameters, "BbSkeyId", plist_copy(node));
-    } else {
-        error("WARNING: Unable to find BbSkeyId node\n");
     }
+//    else {
+//        debug("NOTE: Unable to find BbSkeyId node\n");
+//    }
     node = NULL;
 
     /* SE,ChipID - Used for SE firmware request */
@@ -322,6 +381,40 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
     }
     node = NULL;
 
+    /* add Rap,BoardID */
+    node = plist_dict_get_item(build_identity, "Rap,BoardID");
+    if (node) {
+        plist_dict_set_item(parameters, "Rap,BoardID", plist_copy(node));
+    }
+    node = NULL;
+
+    /* add Rap,ChipID */
+    node = plist_dict_get_item(build_identity, "Rap,ChipID");
+    if (node) {
+        plist_dict_set_item(parameters, "Rap,ChipID", plist_copy(node));
+    }
+    node = NULL;
+
+    /* add Rap,SecurityDomain */
+    node = plist_dict_get_item(build_identity, "Rap,SecurityDomain");
+    if (node) {
+        plist_dict_set_item(parameters, "Rap,SecurityDomain", plist_copy(node));
+    }
+    node = NULL;
+
+    /* add eUICC,ChipID */
+    node = plist_dict_get_item(build_identity, "eUICC,ChipID");
+    if (node) {
+        plist_dict_set_item(parameters, "eUICC,ChipID", plist_copy(node));
+    }
+    node = NULL;
+
+    node = plist_dict_get_item(build_identity, "PearlCertificationRootPub");
+    if (node) {
+        plist_dict_set_item(parameters, "PearlCertificationRootPub", plist_copy(node));
+    }
+    node = NULL;
+
     /* add build identity manifest dictionary */
     node = plist_dict_get_item(build_identity, "Manifest");
     if (!node || plist_get_node_type(node) != PLIST_DICT) {
@@ -390,6 +483,12 @@ int tss_request_add_ap_img4_tags(plist_t request, plist_t parameters, TSSCustomU
 
     plist_dict_set_item(request, "SepNonce", plist_copy(node));
     node = NULL;
+
+    /* PearlCertificationRootPub */
+    node = plist_dict_get_item(parameters, "PearlCertificationRootPub");
+    if (node) {
+        plist_dict_set_item(request, "PearlCertificationRootPub", plist_copy(node));
+    }
 
     return 0;
 }
@@ -563,15 +662,15 @@ static void tss_entry_apply_restore_request_rules(plist_t tss_entry, plist_t par
             plist_dict_next_item(actions, iter, &key, &value);
             if (key == NULL)
                 break;
-            uint8_t bv = 0;
+            uint8_t bv = 255;
             plist_get_bool_val(value, &bv);
-            if (bv) {
+            if (bv != 255) {
                 value2 = plist_dict_get_item(tss_entry, key);
                 if (value2) {
                     plist_dict_remove_item(tss_entry, key);
                 }
-                debug("DEBUG: Adding action %s to TSS entry\n", key);
-                plist_dict_set_item(tss_entry, key, plist_new_bool(1));
+                debug("DEBUG: Adding %s=%s to TSS entry\n", key, (bv) ? "true" : "false");
+                plist_dict_set_item(tss_entry, key, plist_new_bool(bv));
             }
             free(key);
         }
@@ -611,6 +710,14 @@ int tss_request_add_ap_tags(plist_t request, plist_t parameters, plist_t overrid
         if (strcmp(key, "Diags") == 0) {
             free(key);
             continue;
+        }
+
+        if (_plist_dict_get_bool(parameters, "_OnlyFWComponents")) {
+            plist_t info_dict = plist_dict_get_item(manifest_entry, "Info");
+            if (!_plist_dict_get_bool(manifest_entry, "Trusted") && !_plist_dict_get_bool(info_dict, "IsFirmwarePayload") && !_plist_dict_get_bool(info_dict, "IsSecondaryFirmwarePayload") && !_plist_dict_get_bool(info_dict, "IsFUDFirmware")) {
+                debug("DEBUG: %s: Skipping '%s' as it is neither firmware nor secondary firmware payload\n", __func__, key);
+                continue;
+            }
         }
 
         /* copy this entry */

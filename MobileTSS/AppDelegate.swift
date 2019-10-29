@@ -99,7 +99,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             let dic = NSDictionary.init(contentsOfFile: mobileprovision, head: "<?xml", includedTail: "</plist>")
             let date = dic?.object(forKey: "ExpirationDate") as! Date
             AppDelegate.expirationDate = date
-            if PreferencesTableViewController.isExpirationNotificationOn && application.currentUserNotificationSettings?.types.contains(.alert) ?? false {
+            if PreferencesManager.shared.isExpirationNotificationOn && application.currentUserNotificationSettings?.types.contains(.alert) ?? false {
                 let scheduledExpirationNotification = application.scheduledLocalNotifications?.first(where: { (localNotification) -> Bool in
                     if let num = localNotification.userInfo?[AppDelegate.LocalNotificationTypeKey] as? Int, LocalNotificationType(rawValue: num) == .expiration {
                         return true
@@ -138,7 +138,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
     }
     func application(_ application: UIApplication, didRegister notificationSettings: UIUserNotificationSettings) {
-        if PreferencesTableViewController.isExpirationNotificationOn, let expirationDate = AppDelegate.expirationDate {
+        if PreferencesManager.shared.isExpirationNotificationOn, let expirationDate = AppDelegate.expirationDate {
             AppDelegate.scheduleExpirationNotification(expirationDate: expirationDate)
         }
     }
@@ -201,7 +201,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        guard PreferencesTableViewController.isBackgroundFetchingOn else {
+        guard PreferencesManager.shared.isBackgroundFetchingOn else {
             completionHandler(.noData)
             return
         }

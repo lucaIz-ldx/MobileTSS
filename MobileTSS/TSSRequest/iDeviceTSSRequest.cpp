@@ -11,7 +11,7 @@
 #include "TSSHelper.h"
 
 #include <unordered_set>
-#include <cassert>
+#define assert(cond) do {if((cond) == 0){abort();}} while(0)
 
 struct Nonce {
     char internalNonce[100];
@@ -368,8 +368,12 @@ bool iDeviceTSSRequest::isCurrentBuildManifestSigned(const DeviceVersion &versio
         this->generator,
     };
     const int isSigned = isBuildIdentitySignedForDevice(this->matchedBuildIdentity, &device, nullptr, this->userData);
-    free(device.apnonce.buffer);
-    free(device.sepnonce.buffer);
+    if (this->apnonce == nullptr || device.apnonce.buffer != this->apnonce->internalNonce) {
+        free(device.apnonce.buffer);
+    }
+    if (this->sepnonce == nullptr || device.sepnonce.buffer != this->sepnonce->internalNonce) {
+        free(device.sepnonce.buffer);
+    }
     if (isSigned < 0) {
         fillOptionalUnknownErrMsg(this->userData->errorMessage);
         throw TSSRequestError(this->userData->errorCode == 0 ? TSSRequestError::TSSRequestErrorCode::Unknown_Error : this->userData->errorCode, this->userData->errorMessage);
@@ -380,19 +384,19 @@ StringBufferContainer iDeviceTSSRequest::getShshblobsData(const DeviceVersion &v
     if (!this->deviceInfo) {
         throw "Device Info is null.";
     }
-    DeviceInfo_BridgedCStruct device = {
-        this->deviceInfo->deviceModel,
-        this->deviceInfo->deviceBoardConfiguration,
-        this->getECID(),
-        // provided by tss or user-specified, apnonce is requested.
-        {this->apnonce ? this->apnonce->internalNonce : nullptr, this->apnonce ? this->apnonce->parsedSize : 1},
-        // provided by tss or user-specified, (64-bit devices only), sepnonce is requested.
-        {this->sepnonce ? this->sepnonce->internalNonce : nullptr, this->sepnonce ? this->sepnonce->parsedSize : 1},
-        this->generator,
-    };
     TSSDataBuffer buffer;
     const BuildIdentity *identity = this->getMatchedIdentitiesFromBuildManifest(version);
     if (identity) {
+        DeviceInfo_BridgedCStruct device = {
+            this->deviceInfo->deviceModel,
+            this->deviceInfo->deviceBoardConfiguration,
+            this->getECID(),
+            // provided by tss or user-specified, apnonce is requested.
+            {this->apnonce ? this->apnonce->internalNonce : nullptr, this->apnonce ? this->apnonce->parsedSize : 1},
+            // provided by tss or user-specified, (64-bit devices only), sepnonce is requested.
+            {this->sepnonce ? this->sepnonce->internalNonce : nullptr, this->sepnonce ? this->sepnonce->parsedSize : 1},
+            this->generator,
+        };
         if (isBuildIdentitySignedForDevice(identity, &device, &buffer, userData) < 0) {
             error("Cannot check tss status. Abort.\n");
         }
@@ -400,14 +404,18 @@ StringBufferContainer iDeviceTSSRequest::getShshblobsData(const DeviceVersion &v
             if (!this->apnonce) {
                 this->apnonce = new Nonce(device.apnonce.buffer, device.apnonce.length);
             }
-            // sepnonce is reset every time.
-            if (device.sepnonce.buffer) {
+            // sepnonce is reset every time (only when sepnonce is not specified and generated randomly each time)
+            if (device.sepnonce.buffer && (!this->sepnonce || device.sepnonce.buffer != this->sepnonce->internalNonce)) {
                 delete this->sepnonce;
                 this->sepnonce = new Nonce(device.sepnonce.buffer, device.sepnonce.length);
             }
         }
-        free(device.apnonce.buffer);
-        free(device.sepnonce.buffer);
+        if (this->apnonce == nullptr || device.apnonce.buffer != this->apnonce->internalNonce) {
+            free(device.apnonce.buffer);
+        }
+        if (this->sepnonce == nullptr || device.sepnonce.buffer != this->sepnonce->internalNonce) {
+            free(device.sepnonce.buffer);
+        }
     }
     else {
         error("Failed to retrieve BuildManifest. Abort.\n");

@@ -220,7 +220,7 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
         guard let loadedFullFirmwareInfo = self.loadedFullFirmwareInfo else {
             return
         }
-        if !PreferencesTableViewController.isShowingUnsignedFirmware {
+        if !PreferencesManager.shared.isShowingUnsignedFirmware {
             self.allFirmwareInfo = loadedFullFirmwareInfo.filter {
                 return $0.status.currentStatus == .Signed
             }

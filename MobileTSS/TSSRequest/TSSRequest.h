@@ -18,6 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 FOUNDATION_EXTERN NSString *const TSSRequestErrorDomain;
 FOUNDATION_EXTERN NSString *const TSSTimeoutPreferencesKey;
+
 @class TSSRequest;
 @protocol TSSRequestDelegate <NSObject>
 - (void) request: (TSSRequest *) request sendMessageOutput: (NSString *) output;
