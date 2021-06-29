@@ -23,7 +23,7 @@ If you need to run it on lower iOS version, please install v1.2 (iOS 8.0+) inste
 Since MobileTSS can create device profiles in v2.0, you do not need to run it on devices you want to save blobs for; you can simply create a device profile and fill ECID then all set.
 
 ## Tutorial
-This project is written in Swift 5 so you need to have Xcode 11 or above installed on Mac to compile it. After finish downloading the project zip, open project file and start to compile and should run on simulator. 
+This project is written in Swift 5 so you need to have Xcode 12 or above installed on Mac to compile it. After finish downloading the project zip, open project file and start to compile and should run on simulator. 
 
 ## Support
 Any contributions are welcome. This project is under LGPL-3.0 license.  
@@ -34,7 +34,6 @@ Any contributions are welcome. This project is under LGPL-3.0 license.
 * Firmware data information provided by [ipsw.me](https://ipsw.me)
 
 ## Preview
-![custom](Images/custom.png) 
-![profile](Images/profile.png)
+<img src="Images/custom.png" width="300"> <img src="Images/profile.png" width="300">
 </br>
 
