@@ -18,46 +18,50 @@ class ProgressOutputViewController: UIViewController {
 
     var topTitle: String? {
         get {
-            return self.navigationBar?.items?.first?.title
+            return navigationBar?.items?.first?.title
         }
         set {
-            self.navigationBar?.items?.first?.title = newValue
+            navigationBar?.items?.first?.title = newValue
         }
     }
     var backButtonTitle: String? {
         get {
-            return self.dismissButton?.title
+            return dismissButton?.title
         }
         set {
-            self.dismissButton?.title = newValue
+            dismissButton?.title = newValue
         }
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.configurationBlock?()
+        if #available(iOS 13.0, *) {
+            isModalInPresentation = true
+        }
+        configurationBlock?()
     }
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        if let actionAfterViewAppeared = self.actionAfterViewAppeared {
+        if let actionAfterViewAppeared = actionAfterViewAppeared {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
                 self.dismissButton.isEnabled = true
                 actionAfterViewAppeared()
+                self.actionAfterViewAppeared = nil
             })
         }
         else {
-            self.dismissButton.isEnabled = true
+            dismissButton.isEnabled = true
         }
     }
     func addTextToOutputView(_ text: String) {
-        self.outputView.text = self.outputView.text + text + "\n"
-        self.outputView.scrollRangeToVisible(NSMakeRange(self.outputView.text.count - 1, 1))
+        outputView.text = outputView.text + text + "\n"
+        outputView.scrollRangeToVisible(NSMakeRange(outputView.text.count - 1, 1))
     }
     @IBAction private func dismissCurrentViewController(_ sender: UIBarButtonItem) {
         cancelBlock?()
         cancelBlock = nil
-        self.dismiss(animated: true)
+        dismiss(animated: true)
     }
 }
 extension ProgressOutputViewController : UIBarPositioningDelegate {

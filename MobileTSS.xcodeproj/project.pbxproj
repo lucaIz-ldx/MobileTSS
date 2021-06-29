@@ -3,101 +3,115 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 52;
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8137FD76266D5DCD00E5CF93 /* BackgroundFetchTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8137FD75266D5DCD00E5CF93 /* BackgroundFetchTableViewController.swift */; };
+		813BA59826890C10003C4200 /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 813BA59726890C10003C4200 /* libMobileGestalt.tbd */; };
+		813BA59A26890C1D003C4200 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 813BA59926890C1D003C4200 /* libcrypto.a */; };
+		8158DEF6266FF3960061A070 /* APNonceListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8158DEF5266FF3960061A070 /* APNonceListTableViewController.swift */; };
+		8158DEF8266FF3F20061A070 /* PreferencesManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8158DEF7266FF3F20061A070 /* PreferencesManager.swift */; };
+		81A5D22324E6EE4000F97999 /* TSSNonce.m in Sources */ = {isa = PBXBuildFile; fileRef = 81A5D22224E6EE4000F97999 /* TSSNonce.m */; };
+		81AA08CB24E6F48D00696982 /* NSString+ASCIIString.m in Sources */ = {isa = PBXBuildFile; fileRef = 81AA08CA24E6F48D00696982 /* NSString+ASCIIString.m */; };
+		81AA08CE24E71F9F00696982 /* TSSECID.m in Sources */ = {isa = PBXBuildFile; fileRef = 81AA08CD24E71F9F00696982 /* TSSECID.m */; };
+		81F7578A24E4A874004A5B82 /* TSSFirmwareVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = 81F7578924E4A874004A5B82 /* TSSFirmwareVersion.m */; };
 		EA035F3A20EA2A6D00AE61D9 /* GlobalConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA035F3920EA2A6D00AE61D9 /* GlobalConstants.swift */; };
-		EA0743C320F0A52A00F86F96 /* libMobileGestalt.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = EA0743C220F0A52A00F86F96 /* libMobileGestalt.tbd */; };
 		EA0E257C2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA0E257B2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift */; };
-		EA1731FE20FED1AF00A2E091 /* iDeviceTSSRequest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = EA1731FB20FED1AD00A2E091 /* iDeviceTSSRequest.cpp */; };
 		EA1731FF20FED1AF00A2E091 /* TSSC.c in Sources */ = {isa = PBXBuildFile; fileRef = EA1731FC20FED1AE00A2E091 /* TSSC.c */; };
 		EA17320220FED2F100A2E091 /* libfragmentzip.c in Sources */ = {isa = PBXBuildFile; fileRef = EA17320020FED2F100A2E091 /* libfragmentzip.c */; };
 		EA17320620FF284E00A2E091 /* PreferencesTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17320520FF284E00A2E091 /* PreferencesTableViewController.swift */; };
 		EA17320820FF329000A2E091 /* ProgressOutputViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA17320720FF329000A2E091 /* ProgressOutputViewController.swift */; };
-		EA5E7E44216F928800D06E56 /* LocalDeviceConstants.mm in Sources */ = {isa = PBXBuildFile; fileRef = EA5E7E42216F928800D06E56 /* LocalDeviceConstants.mm */; };
+		EA1738142392D451004DD7BB /* WebpageViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA1738132392D451004DD7BB /* WebpageViewController.swift */; };
+		EA2DC52B239AC72500F12569 /* ProfilesTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA2DC52A239AC72500F12569 /* ProfilesTableViewController.swift */; };
+		EA588918239AE1E900E0A6D2 /* DeviceProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA588917239AE1E900E0A6D2 /* DeviceProfile.swift */; };
+		EA5E7E44216F928800D06E56 /* LocalDeviceConstants.m in Sources */ = {isa = PBXBuildFile; fileRef = EA5E7E42216F928800D06E56 /* LocalDeviceConstants.m */; };
 		EA64111D21E71E1B00A32248 /* SHSHFile.m in Sources */ = {isa = PBXBuildFile; fileRef = EAFFFA3C21DB02D50072A2C0 /* SHSHFile.m */; };
 		EA64111E21E7896A00A32248 /* img4.c in Sources */ = {isa = PBXBuildFile; fileRef = EAFBE2FC21D9E434009595E2 /* img4.c */; };
 		EA7143DA20E9D0EF00A32156 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7143D920E9D0EF00A32156 /* AppDelegate.swift */; };
 		EA7143DC20E9D0EF00A32156 /* TSSViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7143DB20E9D0EF00A32156 /* TSSViewController.swift */; };
-		EA7143DE20E9D0EF00A32156 /* SHSHViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7143DD20E9D0EF00A32156 /* SHSHViewController.swift */; };
+		EA7143DE20E9D0EF00A32156 /* SHSHTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA7143DD20E9D0EF00A32156 /* SHSHTableViewController.swift */; };
 		EA7143E120E9D0EF00A32156 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EA7143DF20E9D0EF00A32156 /* Main.storyboard */; };
 		EA7143E320E9D0F000A32156 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EA7143E220E9D0F000A32156 /* Assets.xcassets */; };
 		EA7143E620E9D0F000A32156 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = EA7143E420E9D0F000A32156 /* LaunchScreen.storyboard */; };
-		EA894A8A21D79CC200F8676A /* FetchIntervalTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA894A8921D79CC200F8676A /* FetchIntervalTableViewController.swift */; };
 		EA92BE402257E91C0058EE1A /* APNonceEditTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA92BE3F2257E91C0058EE1A /* APNonceEditTableViewController.swift */; };
-		EA9BEB9221FE286B000DE904 /* APNonceListTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EA9BEB9121FE286B000DE904 /* APNonceListTableViewController.swift */; };
-		EAB5326E20F6DC2B0092EDB6 /* TSSRequest.mm in Sources */ = {isa = PBXBuildFile; fileRef = EAB5326020F6DC250092EDB6 /* TSSRequest.mm */; };
+		EAB5326E20F6DC2B0092EDB6 /* TSSRequest.m in Sources */ = {isa = PBXBuildFile; fileRef = EAB5326020F6DC250092EDB6 /* TSSRequest.m */; };
 		EAB5327020F6DC2B0092EDB6 /* tss.c in Sources */ = {isa = PBXBuildFile; fileRef = EAB5326320F6DC270092EDB6 /* tss.c */; };
 		EAB5327220F6DC2B0092EDB6 /* TSSHelper.c in Sources */ = {isa = PBXBuildFile; fileRef = EAB5326820F6DC290092EDB6 /* TSSHelper.c */; };
 		EAB5327620F6DD0B0092EDB6 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EAB5327420F6DD0B0092EDB6 /* libcurl.a */; };
 		EAB5327720F6DD0B0092EDB6 /* libplist.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EAB5327520F6DD0B0092EDB6 /* libplist.a */; };
-		EAC0ECFE2109B87E00DEE5FB /* CustomFirmwareInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC0ECFD2109B87E00DEE5FB /* CustomFirmwareInfoViewController.swift */; };
-		EAC44D3721EC7DC500A63F86 /* libcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = EAC44D3521EC7D0100A63F86 /* libcrypto.a */; };
-		EACB76FF20F738F300421493 /* FirmwareInfoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACB76FE20F738F300421493 /* FirmwareInfoViewController.swift */; };
+		EAC0ECFE2109B87E00DEE5FB /* CustomFirmwareInfoTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAC0ECFD2109B87E00DEE5FB /* CustomFirmwareInfoTableViewController.swift */; };
+		EACB76FF20F738F300421493 /* FirmwareInfoTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACB76FE20F738F300421493 /* FirmwareInfoTableViewController.swift */; };
 		EACB770120F741B100421493 /* FirmwareInfoTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EACB770020F741B100421493 /* FirmwareInfoTableViewCell.swift */; };
 		EACFE78E21E862A000228D4E /* img4tool.c in Sources */ = {isa = PBXBuildFile; fileRef = EAFBE2FD21D9E434009595E2 /* img4tool.c */; };
 		EAD18E8721F17CB60026B738 /* ScrollableLabelTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD18E8621F17CB60026B738 /* ScrollableLabelTableViewCell.swift */; };
-		EADBF39421CF2E3700EE6A53 /* NSDictionary+ExtractContent.m in Sources */ = {isa = PBXBuildFile; fileRef = EADBF39321CF2E3700EE6A53 /* NSDictionary+ExtractContent.m */; };
+		EADA49FA239B44FF00F8F93F /* ProfileEditTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADA49F9239B44FF00F8F93F /* ProfileEditTableViewController.swift */; };
+		EADA49FC239B49A200F8F93F /* ProfileSelectDeviceTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EADA49FB239B49A200F8F93F /* ProfileSelectDeviceTableViewController.swift */; };
 		EADFF84D21ED7B6600183F89 /* TSSBuildIdentity.m in Sources */ = {isa = PBXBuildFile; fileRef = EADFF84C21ED7B6600183F89 /* TSSBuildIdentity.m */; };
-		EAE57CD821F3FF09003DBCF6 /* validate.c in Sources */ = {isa = PBXBuildFile; fileRef = EAF9C83C21F2BEBB007FB8DB /* validate.c */; };
 		EAEC4B6D21071F9C00438B4D /* CustomFirmwareTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAEC4B6C21071F9C00438B4D /* CustomFirmwareTableViewController.swift */; };
 		EAFBE30721D9FAE4009595E2 /* SHSHDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAFBE30621D9FAE4009595E2 /* SHSHDetailsViewController.swift */; };
 		EAFE505520F1A23200AECD3C /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = EAFE505420F1A23200AECD3C /* libz.tbd */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8137FD75266D5DCD00E5CF93 /* BackgroundFetchTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundFetchTableViewController.swift; sourceTree = "<group>"; };
+		813BA59726890C10003C4200 /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
+		813BA59926890C1D003C4200 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = lib/libcrypto.a; sourceTree = "<group>"; };
+		8158DEF5266FF3960061A070 /* APNonceListTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = APNonceListTableViewController.swift; sourceTree = "<group>"; };
+		8158DEF7266FF3F20061A070 /* PreferencesManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesManager.swift; sourceTree = "<group>"; };
+		81A5D22124E6EE4000F97999 /* TSSNonce.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSSNonce.h; sourceTree = "<group>"; };
+		81A5D22224E6EE4000F97999 /* TSSNonce.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TSSNonce.m; sourceTree = "<group>"; };
+		81AA08C924E6F48D00696982 /* NSString+ASCIIString.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSString+ASCIIString.h"; sourceTree = "<group>"; };
+		81AA08CA24E6F48D00696982 /* NSString+ASCIIString.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSString+ASCIIString.m"; sourceTree = "<group>"; };
+		81AA08CC24E71F9F00696982 /* TSSECID.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSSECID.h; sourceTree = "<group>"; };
+		81AA08CD24E71F9F00696982 /* TSSECID.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TSSECID.m; sourceTree = "<group>"; };
+		81F7578824E4A874004A5B82 /* TSSFirmwareVersion.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSSFirmwareVersion.h; sourceTree = "<group>"; };
+		81F7578924E4A874004A5B82 /* TSSFirmwareVersion.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TSSFirmwareVersion.m; sourceTree = "<group>"; };
 		EA035F3920EA2A6D00AE61D9 /* GlobalConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GlobalConstants.swift; sourceTree = "<group>"; };
-		EA0743C220F0A52A00F86F96 /* libMobileGestalt.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libMobileGestalt.tbd; path = usr/lib/libMobileGestalt.tbd; sourceTree = SDKROOT; };
 		EA0743C420F0A5FC00F86F96 /* MobileGestalt.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MobileGestalt.h; sourceTree = "<group>"; };
 		EA0743C520F0A61F00F86F96 /* MobileTSS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MobileTSS-Bridging-Header.h"; sourceTree = "<group>"; };
 		EA0E257B2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectFirmwareTableViewController.swift; sourceTree = "<group>"; };
 		EA1731FA20FED1AD00A2E091 /* TSSC.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSSC.h; sourceTree = "<group>"; };
-		EA1731FB20FED1AD00A2E091 /* iDeviceTSSRequest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = iDeviceTSSRequest.cpp; sourceTree = "<group>"; };
 		EA1731FC20FED1AE00A2E091 /* TSSC.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TSSC.c; sourceTree = "<group>"; };
-		EA1731FD20FED1AF00A2E091 /* iDeviceTSSRequest.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = iDeviceTSSRequest.hpp; sourceTree = "<group>"; };
 		EA17320020FED2F100A2E091 /* libfragmentzip.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = libfragmentzip.c; sourceTree = "<group>"; };
 		EA17320120FED2F100A2E091 /* libfragmentzip.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = libfragmentzip.h; sourceTree = "<group>"; };
 		EA17320520FF284E00A2E091 /* PreferencesTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreferencesTableViewController.swift; sourceTree = "<group>"; };
 		EA17320720FF329000A2E091 /* ProgressOutputViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressOutputViewController.swift; sourceTree = "<group>"; };
-		EA5E7E42216F928800D06E56 /* LocalDeviceConstants.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LocalDeviceConstants.mm; sourceTree = "<group>"; };
+		EA1738132392D451004DD7BB /* WebpageViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebpageViewController.swift; sourceTree = "<group>"; };
+		EA2DC52A239AC72500F12569 /* ProfilesTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfilesTableViewController.swift; sourceTree = "<group>"; };
+		EA588917239AE1E900E0A6D2 /* DeviceProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceProfile.swift; sourceTree = "<group>"; };
+		EA5E7E42216F928800D06E56 /* LocalDeviceConstants.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalDeviceConstants.m; sourceTree = "<group>"; };
 		EA5E7E43216F928800D06E56 /* LocalDeviceConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalDeviceConstants.h; sourceTree = "<group>"; };
 		EA7143D620E9D0EF00A32156 /* MobileTSS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MobileTSS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		EA7143D920E9D0EF00A32156 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		EA7143DB20E9D0EF00A32156 /* TSSViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TSSViewController.swift; sourceTree = "<group>"; };
-		EA7143DD20E9D0EF00A32156 /* SHSHViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHSHViewController.swift; sourceTree = "<group>"; };
+		EA7143DD20E9D0EF00A32156 /* SHSHTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SHSHTableViewController.swift; sourceTree = "<group>"; };
 		EA7143E020E9D0EF00A32156 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		EA7143E220E9D0F000A32156 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EA7143E520E9D0F000A32156 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		EA7143E720E9D0F000A32156 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		EA894A8921D79CC200F8676A /* FetchIntervalTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FetchIntervalTableViewController.swift; sourceTree = "<group>"; };
 		EA92BE3F2257E91C0058EE1A /* APNonceEditTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNonceEditTableViewController.swift; sourceTree = "<group>"; };
-		EA9BEB9121FE286B000DE904 /* APNonceListTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APNonceListTableViewController.swift; sourceTree = "<group>"; };
+		EAA861FF2393461800DD48EE /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		EAB5325D20F6DC240092EDB6 /* TSSHelper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSSHelper.h; sourceTree = "<group>"; };
 		EAB5325F20F6DC250092EDB6 /* TSSRequest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSSRequest.h; sourceTree = "<group>"; };
-		EAB5326020F6DC250092EDB6 /* TSSRequest.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = TSSRequest.mm; sourceTree = "<group>"; };
+		EAB5326020F6DC250092EDB6 /* TSSRequest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = TSSRequest.m; sourceTree = "<group>"; };
 		EAB5326320F6DC270092EDB6 /* tss.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = tss.c; sourceTree = "<group>"; };
 		EAB5326720F6DC280092EDB6 /* tss.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tss.h; sourceTree = "<group>"; };
 		EAB5326820F6DC290092EDB6 /* TSSHelper.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = TSSHelper.c; sourceTree = "<group>"; };
 		EAB5326920F6DC290092EDB6 /* TSSIO_iOS.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TSSIO_iOS.h; sourceTree = "<group>"; };
 		EAB5327420F6DD0B0092EDB6 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = lib/libcurl.a; sourceTree = "<group>"; };
 		EAB5327520F6DD0B0092EDB6 /* libplist.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libplist.a; path = lib/libplist.a; sourceTree = "<group>"; };
-		EAC0ECFD2109B87E00DEE5FB /* CustomFirmwareInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomFirmwareInfoViewController.swift; sourceTree = "<group>"; };
-		EAC44D3321EC7CEF00A63F86 /* libssl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libssl.a; path = lib/libssl.a; sourceTree = "<group>"; };
-		EAC44D3521EC7D0100A63F86 /* libcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcrypto.a; path = lib/libcrypto.a; sourceTree = "<group>"; };
-		EACB76FE20F738F300421493 /* FirmwareInfoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirmwareInfoViewController.swift; sourceTree = "<group>"; };
+		EAC0ECFD2109B87E00DEE5FB /* CustomFirmwareInfoTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomFirmwareInfoTableViewController.swift; sourceTree = "<group>"; };
+		EACB76FE20F738F300421493 /* FirmwareInfoTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirmwareInfoTableViewController.swift; sourceTree = "<group>"; };
 		EACB770020F741B100421493 /* FirmwareInfoTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirmwareInfoTableViewCell.swift; sourceTree = "<group>"; };
 		EACFE78D21E861D300228D4E /* MobileTSS-prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MobileTSS-prefix.pch"; sourceTree = "<group>"; };
 		EAD18E8621F17CB60026B738 /* ScrollableLabelTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollableLabelTableViewCell.swift; sourceTree = "<group>"; };
-		EAD85F0421F7676C004D8006 /* validate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = validate.h; sourceTree = "<group>"; };
-		EADBF39221CF2E3600EE6A53 /* NSDictionary+ExtractContent.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSDictionary+ExtractContent.h"; sourceTree = "<group>"; };
-		EADBF39321CF2E3700EE6A53 /* NSDictionary+ExtractContent.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSDictionary+ExtractContent.m"; sourceTree = "<group>"; };
+		EADA49F9239B44FF00F8F93F /* ProfileEditTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileEditTableViewController.swift; sourceTree = "<group>"; };
+		EADA49FB239B49A200F8F93F /* ProfileSelectDeviceTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSelectDeviceTableViewController.swift; sourceTree = "<group>"; };
 		EADFF84B21ED7B6600183F89 /* TSSBuildIdentity.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSSBuildIdentity.h; sourceTree = "<group>"; };
 		EADFF84C21ED7B6600183F89 /* TSSBuildIdentity.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TSSBuildIdentity.m; sourceTree = "<group>"; };
 		EAE4EC4321D184BF007C708C /* TSSBoolean.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TSSBoolean.h; sourceTree = "<group>"; };
 		EAEC4B6C21071F9C00438B4D /* CustomFirmwareTableViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomFirmwareTableViewController.swift; sourceTree = "<group>"; };
-		EAF9C83C21F2BEBB007FB8DB /* validate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = validate.c; sourceTree = "<group>"; };
-		EAF9C84521F2BFAB007FB8DB /* validate_ca.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = validate_ca.h; sourceTree = "<group>"; };
 		EAFBE2FC21D9E434009595E2 /* img4.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = img4.c; sourceTree = "<group>"; };
 		EAFBE2FD21D9E434009595E2 /* img4tool.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = img4tool.c; sourceTree = "<group>"; };
 		EAFBE2FE21D9E435009595E2 /* img4.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = img4.h; sourceTree = "<group>"; };
@@ -113,11 +127,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				813BA59A26890C1D003C4200 /* libcrypto.a in Frameworks */,
+				813BA59826890C10003C4200 /* libMobileGestalt.tbd in Frameworks */,
 				EAFE505520F1A23200AECD3C /* libz.tbd in Frameworks */,
-				EA0743C320F0A52A00F86F96 /* libMobileGestalt.tbd in Frameworks */,
 				EAB5327620F6DD0B0092EDB6 /* libcurl.a in Frameworks */,
 				EAB5327720F6DD0B0092EDB6 /* libplist.a in Frameworks */,
-				EAC44D3721EC7DC500A63F86 /* libcrypto.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -127,12 +141,11 @@
 		EA0743C120F0A52A00F86F96 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				EAC44D3521EC7D0100A63F86 /* libcrypto.a */,
-				EAC44D3321EC7CEF00A63F86 /* libssl.a */,
+				813BA59926890C1D003C4200 /* libcrypto.a */,
+				813BA59726890C10003C4200 /* libMobileGestalt.tbd */,
 				EAB5327420F6DD0B0092EDB6 /* libcurl.a */,
 				EAB5327520F6DD0B0092EDB6 /* libplist.a */,
 				EAFE505420F1A23200AECD3C /* libz.tbd */,
-				EA0743C220F0A52A00F86F96 /* libMobileGestalt.tbd */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -160,24 +173,19 @@
 				EA7143D920E9D0EF00A32156 /* AppDelegate.swift */,
 				EA7143DB20E9D0EF00A32156 /* TSSViewController.swift */,
 				EA17320720FF329000A2E091 /* ProgressOutputViewController.swift */,
-				EACB76FE20F738F300421493 /* FirmwareInfoViewController.swift */,
+				EACB76FE20F738F300421493 /* FirmwareInfoTableViewController.swift */,
 				EACB770020F741B100421493 /* FirmwareInfoTableViewCell.swift */,
 				EAD18E8621F17CB60026B738 /* ScrollableLabelTableViewCell.swift */,
 				EAEC4B6C21071F9C00438B4D /* CustomFirmwareTableViewController.swift */,
-				EAC0ECFD2109B87E00DEE5FB /* CustomFirmwareInfoViewController.swift */,
-				EA7143DD20E9D0EF00A32156 /* SHSHViewController.swift */,
-				EAFBE30621D9FAE4009595E2 /* SHSHDetailsViewController.swift */,
-				EA17320520FF284E00A2E091 /* PreferencesTableViewController.swift */,
-				EA894A8921D79CC200F8676A /* FetchIntervalTableViewController.swift */,
-				EA9BEB9121FE286B000DE904 /* APNonceListTableViewController.swift */,
-				EA92BE3F2257E91C0058EE1A /* APNonceEditTableViewController.swift */,
+				EAC0ECFD2109B87E00DEE5FB /* CustomFirmwareInfoTableViewController.swift */,
 				EA0E257B2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift */,
-				EA7143E720E9D0F000A32156 /* Info.plist */,
+				EA1738132392D451004DD7BB /* WebpageViewController.swift */,
+				EA7143DD20E9D0EF00A32156 /* SHSHTableViewController.swift */,
+				EAFBE30621D9FAE4009595E2 /* SHSHDetailsViewController.swift */,
+				EADA49FE239B4A4500F8F93F /* Preferences */,
+				EADA49FD239B4A1900F8F93F /* Profiles */,
 				EA7143DF20E9D0EF00A32156 /* Main.storyboard */,
-				EA7143E220E9D0F000A32156 /* Assets.xcassets */,
-				EA7143E420E9D0F000A32156 /* LaunchScreen.storyboard */,
 				EA035F3920EA2A6D00AE61D9 /* GlobalConstants.swift */,
-				EA0743C520F0A61F00F86F96 /* MobileTSS-Bridging-Header.h */,
 				EAE4EC4121D17199007C708C /* TSSRequest */,
 				EAFBE30421D9E444009595E2 /* SHSH */,
 				EAB5325A20F6DC0A0092EDB6 /* Supporting Files */,
@@ -188,26 +196,56 @@
 		EAB5325A20F6DC0A0092EDB6 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				EA0743C520F0A61F00F86F96 /* MobileTSS-Bridging-Header.h */,
 				EAE4EC4321D184BF007C708C /* TSSBoolean.h */,
 				EACFE78D21E861D300228D4E /* MobileTSS-prefix.pch */,
 				EA0743C420F0A5FC00F86F96 /* MobileGestalt.h */,
-				EADBF39221CF2E3600EE6A53 /* NSDictionary+ExtractContent.h */,
-				EADBF39321CF2E3700EE6A53 /* NSDictionary+ExtractContent.m */,
+				EA7143E720E9D0F000A32156 /* Info.plist */,
+				EAA861FF2393461800DD48EE /* Entitlements.plist */,
+				EA7143E220E9D0F000A32156 /* Assets.xcassets */,
+				EA7143E420E9D0F000A32156 /* LaunchScreen.storyboard */,
 			);
 			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		EADA49FD239B4A1900F8F93F /* Profiles */ = {
+			isa = PBXGroup;
+			children = (
+				EA2DC52A239AC72500F12569 /* ProfilesTableViewController.swift */,
+				EA588917239AE1E900E0A6D2 /* DeviceProfile.swift */,
+				EADA49F9239B44FF00F8F93F /* ProfileEditTableViewController.swift */,
+				EADA49FB239B49A200F8F93F /* ProfileSelectDeviceTableViewController.swift */,
+				8158DEF5266FF3960061A070 /* APNonceListTableViewController.swift */,
+				EA92BE3F2257E91C0058EE1A /* APNonceEditTableViewController.swift */,
+			);
+			path = Profiles;
+			sourceTree = "<group>";
+		};
+		EADA49FE239B4A4500F8F93F /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				EA17320520FF284E00A2E091 /* PreferencesTableViewController.swift */,
+				8158DEF7266FF3F20061A070 /* PreferencesManager.swift */,
+				8137FD75266D5DCD00E5CF93 /* BackgroundFetchTableViewController.swift */,
+			);
+			path = Preferences;
 			sourceTree = "<group>";
 		};
 		EAE4EC4121D17199007C708C /* TSSRequest */ = {
 			isa = PBXGroup;
 			children = (
 				EAB5325F20F6DC250092EDB6 /* TSSRequest.h */,
-				EAB5326020F6DC250092EDB6 /* TSSRequest.mm */,
+				EAB5326020F6DC250092EDB6 /* TSSRequest.m */,
+				81AA08CC24E71F9F00696982 /* TSSECID.h */,
+				81AA08CD24E71F9F00696982 /* TSSECID.m */,
+				81A5D22124E6EE4000F97999 /* TSSNonce.h */,
+				81A5D22224E6EE4000F97999 /* TSSNonce.m */,
 				EADFF84B21ED7B6600183F89 /* TSSBuildIdentity.h */,
 				EADFF84C21ED7B6600183F89 /* TSSBuildIdentity.m */,
-				EA1731FD20FED1AF00A2E091 /* iDeviceTSSRequest.hpp */,
-				EA1731FB20FED1AD00A2E091 /* iDeviceTSSRequest.cpp */,
+				81F7578824E4A874004A5B82 /* TSSFirmwareVersion.h */,
+				81F7578924E4A874004A5B82 /* TSSFirmwareVersion.m */,
 				EA5E7E43216F928800D06E56 /* LocalDeviceConstants.h */,
-				EA5E7E42216F928800D06E56 /* LocalDeviceConstants.mm */,
+				EA5E7E42216F928800D06E56 /* LocalDeviceConstants.m */,
 				EA1731FA20FED1AD00A2E091 /* TSSC.h */,
 				EA1731FC20FED1AE00A2E091 /* TSSC.c */,
 				EA17320120FED2F100A2E091 /* libfragmentzip.h */,
@@ -217,18 +255,10 @@
 				EAB5326920F6DC290092EDB6 /* TSSIO_iOS.h */,
 				EAB5325D20F6DC240092EDB6 /* TSSHelper.h */,
 				EAB5326820F6DC290092EDB6 /* TSSHelper.c */,
+				81AA08C924E6F48D00696982 /* NSString+ASCIIString.h */,
+				81AA08CA24E6F48D00696982 /* NSString+ASCIIString.m */,
 			);
 			path = TSSRequest;
-			sourceTree = "<group>";
-		};
-		EAF9C84321F2BF4A007FB8DB /* xpwn */ = {
-			isa = PBXGroup;
-			children = (
-				EAF9C84521F2BFAB007FB8DB /* validate_ca.h */,
-				EAD85F0421F7676C004D8006 /* validate.h */,
-				EAF9C83C21F2BEBB007FB8DB /* validate.c */,
-			);
-			path = xpwn;
 			sourceTree = "<group>";
 		};
 		EAFBE30421D9E444009595E2 /* SHSH */ = {
@@ -240,7 +270,6 @@
 				EAFBE2FE21D9E435009595E2 /* img4.h */,
 				EAFBE2FD21D9E434009595E2 /* img4tool.c */,
 				EAFBE2FF21D9E435009595E2 /* img4tool.h */,
-				EAF9C84321F2BF4A007FB8DB /* xpwn */,
 			);
 			path = SHSH;
 			sourceTree = "<group>";
@@ -272,12 +301,12 @@
 			isa = PBXProject;
 			attributes = {
 				LastSwiftUpdateCheck = 0940;
-				LastUpgradeCheck = 0940;
+				LastUpgradeCheck = 1160;
 				ORGANIZATIONNAME = "";
 				TargetAttributes = {
 					EA7143D520E9D0EF00A32156 = {
 						CreatedOnToolsVersion = 9.4.1;
-						LastSwiftMigration = 0940;
+						LastSwiftMigration = 1160;
 						SystemCapabilities = {
 							com.apple.BackgroundModes = {
 								enabled = 1;
@@ -296,7 +325,7 @@
 				};
 			};
 			buildConfigurationList = EA7143D120E9D0EF00A32156 /* Build configuration list for PBXProject "MobileTSS" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 11.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -331,32 +360,39 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EA9BEB9221FE286B000DE904 /* APNonceListTableViewController.swift in Sources */,
+				EA588918239AE1E900E0A6D2 /* DeviceProfile.swift in Sources */,
 				EAB5327020F6DC2B0092EDB6 /* tss.c in Sources */,
 				EAEC4B6D21071F9C00438B4D /* CustomFirmwareTableViewController.swift in Sources */,
 				EA17320220FED2F100A2E091 /* libfragmentzip.c in Sources */,
 				EA64111D21E71E1B00A32248 /* SHSHFile.m in Sources */,
 				EADFF84D21ED7B6600183F89 /* TSSBuildIdentity.m in Sources */,
 				EACB770120F741B100421493 /* FirmwareInfoTableViewCell.swift in Sources */,
-				EA1731FE20FED1AF00A2E091 /* iDeviceTSSRequest.cpp in Sources */,
+				EA2DC52B239AC72500F12569 /* ProfilesTableViewController.swift in Sources */,
+				81F7578A24E4A874004A5B82 /* TSSFirmwareVersion.m in Sources */,
 				EA92BE402257E91C0058EE1A /* APNonceEditTableViewController.swift in Sources */,
 				EA0E257C2322B0BE0077D7A7 /* SelectFirmwareTableViewController.swift in Sources */,
-				EA894A8A21D79CC200F8676A /* FetchIntervalTableViewController.swift in Sources */,
 				EAB5327220F6DC2B0092EDB6 /* TSSHelper.c in Sources */,
-				EA5E7E44216F928800D06E56 /* LocalDeviceConstants.mm in Sources */,
+				EA5E7E44216F928800D06E56 /* LocalDeviceConstants.m in Sources */,
 				EA1731FF20FED1AF00A2E091 /* TSSC.c in Sources */,
 				EACFE78E21E862A000228D4E /* img4tool.c in Sources */,
-				EAC0ECFE2109B87E00DEE5FB /* CustomFirmwareInfoViewController.swift in Sources */,
+				EAC0ECFE2109B87E00DEE5FB /* CustomFirmwareInfoTableViewController.swift in Sources */,
 				EA17320620FF284E00A2E091 /* PreferencesTableViewController.swift in Sources */,
+				8158DEF8266FF3F20061A070 /* PreferencesManager.swift in Sources */,
 				EA17320820FF329000A2E091 /* ProgressOutputViewController.swift in Sources */,
-				EA7143DE20E9D0EF00A32156 /* SHSHViewController.swift in Sources */,
-				EAE57CD821F3FF09003DBCF6 /* validate.c in Sources */,
+				8158DEF6266FF3960061A070 /* APNonceListTableViewController.swift in Sources */,
+				EA1738142392D451004DD7BB /* WebpageViewController.swift in Sources */,
+				EA7143DE20E9D0EF00A32156 /* SHSHTableViewController.swift in Sources */,
 				EAD18E8721F17CB60026B738 /* ScrollableLabelTableViewCell.swift in Sources */,
+				81AA08CB24E6F48D00696982 /* NSString+ASCIIString.m in Sources */,
+				8137FD76266D5DCD00E5CF93 /* BackgroundFetchTableViewController.swift in Sources */,
 				EAFBE30721D9FAE4009595E2 /* SHSHDetailsViewController.swift in Sources */,
-				EADBF39421CF2E3700EE6A53 /* NSDictionary+ExtractContent.m in Sources */,
-				EAB5326E20F6DC2B0092EDB6 /* TSSRequest.mm in Sources */,
+				EADA49FA239B44FF00F8F93F /* ProfileEditTableViewController.swift in Sources */,
+				81A5D22324E6EE4000F97999 /* TSSNonce.m in Sources */,
+				EAB5326E20F6DC2B0092EDB6 /* TSSRequest.m in Sources */,
 				EA7143DA20E9D0EF00A32156 /* AppDelegate.swift in Sources */,
-				EACB76FF20F738F300421493 /* FirmwareInfoViewController.swift in Sources */,
+				EADA49FC239B49A200F8F93F /* ProfileSelectDeviceTableViewController.swift in Sources */,
+				81AA08CE24E71F9F00696982 /* TSSECID.m in Sources */,
+				EACB76FF20F738F300421493 /* FirmwareInfoTableViewController.swift in Sources */,
 				EA035F3A20EA2A6D00AE61D9 /* GlobalConstants.swift in Sources */,
 				EA64111E21E7896A00A32248 /* img4.c in Sources */,
 				EA7143DC20E9D0EF00A32156 /* TSSViewController.swift in Sources */,
@@ -390,19 +426,20 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ADDRESS_SANITIZER_CONTAINER_OVERFLOW = YES;
+				CLANG_ANALYZER_GCD_PERFORMANCE = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_EMPTY_CONTEXT = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_INTEGER = YES;
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_ASSIGN_ENUM = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_CXX0X_EXTENSIONS = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -411,33 +448,36 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
 				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_INTERFACE_IVARS = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_SEMICOLON_BEFORE_METHOD_BODY = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES_AGGRESSIVE;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CLANG_WARN__EXIT_TIME_DESTRUCTORS = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_BITCODE = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MobileTSS/Supporting Files/MobileTSS-prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
+				GCC_PREPROCESSOR_DEFINITIONS = "DEBUG=1";
 				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_STRICT_SELECTOR_MATCH = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
@@ -446,13 +486,13 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = include;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LIBRARY_SEARCH_PATHS = lib;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				SWIFT_VERSION = 4.0;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -461,19 +501,20 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ADDRESS_SANITIZER_CONTAINER_OVERFLOW = YES;
+				CLANG_ANALYZER_GCD_PERFORMANCE = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_EMPTY_CONTEXT = YES;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_INTEGER = YES;
 				CLANG_UNDEFINED_BEHAVIOR_SANITIZER_NULLABILITY = YES;
 				CLANG_WARN_ASSIGN_ENUM = YES;
 				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
-				CLANG_WARN_CXX0X_EXTENSIONS = YES;
 				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -482,14 +523,19 @@
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
 				CLANG_WARN_OBJC_EXPLICIT_OWNERSHIP_TYPE = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_INTERFACE_IVARS = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_SEMICOLON_BEFORE_METHOD_BODY = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES_AGGRESSIVE;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CLANG_WARN__EXIT_TIME_DESTRUCTORS = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_BITCODE = NO;
@@ -502,7 +548,9 @@
 				GCC_TREAT_INCOMPATIBLE_POINTER_TYPE_WARNINGS_AS_ERRORS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_INITIALIZER_NOT_FULLY_BRACKETED = YES;
 				GCC_WARN_NON_VIRTUAL_DESTRUCTOR = YES;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_STRICT_SELECTOR_MATCH = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
@@ -511,12 +559,13 @@
 				GCC_WARN_UNUSED_LABEL = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = include;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.4;
 				LIBRARY_SEARCH_PATHS = lib;
 				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_DISABLE_SAFETY_CHECKS = YES;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
-				SWIFT_VERSION = 4.0;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
@@ -525,11 +574,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				INFOPLIST_FILE = MobileTSS/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				CODE_SIGN_ENTITLEMENTS = "MobileTSS/Supporting Files/Entitlements.plist";
+				INFOPLIST_FILE = "MobileTSS/Supporting Files/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = luca.MobileTSS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "MobileTSS/MobileTSS-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "MobileTSS/Supporting Files/MobileTSS-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -538,11 +593,17 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				INFOPLIST_FILE = MobileTSS/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				CODE_SIGN_ENTITLEMENTS = "MobileTSS/Supporting Files/Entitlements.plist";
+				INFOPLIST_FILE = "MobileTSS/Supporting Files/Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.2;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 2.0;
 				PRODUCT_BUNDLE_IDENTIFIER = luca.MobileTSS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SWIFT_OBJC_BRIDGING_HEADER = "MobileTSS/MobileTSS-Bridging-Header.h";
+				SWIFT_OBJC_BRIDGING_HEADER = "MobileTSS/Supporting Files/MobileTSS-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;

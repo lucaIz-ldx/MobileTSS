@@ -6,20 +6,26 @@
 //
 
 #import <Foundation/Foundation.h>
+#import "TSSFirmwareVersion.h"
 
 NS_ASSUME_NONNULL_BEGIN
 @interface TSSBuildIdentity : NSObject
-@property (readonly, nonatomic, nullable) void *updateInstall NS_SWIFT_UNAVAILABLE("");
-@property (readonly, nonatomic, nullable) void *eraseInstall NS_SWIFT_UNAVAILABLE("");
+@property (readonly, nonatomic, nullable) void *updateInstall NS_SWIFT_UNAVAILABLE("Accessing raw pointer of buildId is not supported.");
+@property (readonly, nonatomic, nullable) void *eraseInstall NS_SWIFT_UNAVAILABLE("Accessing raw pointer of buildId is not supported.");
 
 @property (readonly, copy, nonatomic) NSString *deviceBoardConfiguration;
 
-+ (nullable NSArray<TSSBuildIdentity *> *) buildIdentitiesInBuildManifest: (NSDictionary<NSString *, id> *) buildManifest forDeviceModel: (NSString *) deviceModel;
++ (nullable NSArray<TSSBuildIdentity *> *) buildIdentitiesInBuildManifestData: (NSData *) buildManifestData forDeviceModel: (NSString *) deviceModel;
++ (NSString *) buildIdentityCacheFileNameWithDeviceBoard: (NSString *) deviceBoard version: (NSString *) version buildId: (NSString *) buildId;
 
 - (instancetype) init NS_UNAVAILABLE;
-- (nullable instancetype) initWithUpdate: (nullable void *) update EraseRestore: (nullable void *) erase NS_DESIGNATED_INITIALIZER NS_SWIFT_UNAVAILABLE("Use BuildManifest Initializer.");
+- (nullable instancetype) initWithUpdateInstall: (nullable void *) updateInstall eraseInstall: (nullable void *) eraseInstall NS_DESIGNATED_INITIALIZER NS_SWIFT_UNAVAILABLE("Use BuildIdentitiesData Initializer.");
+- (nullable instancetype) initWithBuildManifestPlistDictNode: (void *) plistDictNode deviceBoard: (NSString *) deviceBoard NS_SWIFT_UNAVAILABLE("Use BuildManifestData Initializer.");
 
-- (nullable instancetype) initWithBuildManifest: (NSDictionary<NSString *, id> *) buildManifest DeviceBoard: (NSString *) deviceBoard;
+- (nullable instancetype) initWithBuildManifestData: (NSData *) buildManifestData deviceBoard: (NSString *) deviceBoard;
+
+- (nullable instancetype) initWithBuildIdentitiesData: (NSData *) buildIdentityData;
+- (BOOL) writeBuildIdentitiesToFile: (NSString *) filePath error: (NSError **) error;
 
 @end
 NS_ASSUME_NONNULL_END

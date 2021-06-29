@@ -8,8 +8,7 @@
 
 import UIKit
 
-class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
-
+class TSSViewController: UITableViewController {
     class FirmwareInfo : CustomFirmwareTableViewController.CustomRequest {
         var releaseDate: String?
         init(deviceBoard: String, deviceModel: String, version: String, buildID: String, buildManifestURL: String, status: CustomFirmwareTableViewController.SigningStatus, releaseDate: String?) {
@@ -19,135 +18,57 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
 
         override var visibleInfoDictionary: [(String, String)] {
             guard let releaseDate = releaseDate else { return super.visibleInfoDictionary }
-            return super.visibleInfoDictionary + [(JsonKeys.releasedate_Key, releaseDate)]
+            return super.visibleInfoDictionary + [(LocalizedString.releasedate, releaseDate)]
         }
     }
-
-    @IBOutlet private var tableView: UITableView!
 
     private weak var loadingEffectBackgroundView: UIView?
     private weak var refreshTask: URLSessionTask?
 
     private var bottomFootViewInTable: UILabel!
-    private var loadedFullFirmwareInfo: [FirmwareInfo]?
-    private var allFirmwareInfo : [FirmwareInfo] = []
+    private var allFirmwareInfo: [FirmwareInfo]?
+    private var displayedFirmwareInfo : [FirmwareInfo] = []
 
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.allFirmwareInfo.count
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return displayedFirmwareInfo.count
     }
 
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "tss", for: indexPath)
-        let info = self.allFirmwareInfo[indexPath.row]
+        let info = displayedFirmwareInfo[indexPath.row]
         cell.textLabel?.text = info.version + " (\(info.buildID))"
-        cell.detailTextLabel?.text = info.status.currentStatus == .Signed ? "You can restore this firmware through iTunes. " : "This firmware is not being signed. "
+        cell.detailTextLabel?.text = info.status.currentStatus == .signed ? "You can restore this firmware through iTunes. " : "This firmware is not being signed. "
         // TODO: Image
-//        cell.imageView?.image = isSigned ? UIImage.init(named: "Signed") : UIImage.init(named: "notSigned")
+//        cell.imageView?.image = info.status.currentStatus == .signed ? TSSViewController.greenCheckMarkImage : TSSViewController.redCrossImage
         return cell
-    }
-
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        tableView.deselectRow(at: indexPath, animated: true)
-        
-        self.performSegue(withIdentifier: "ToFirmwareInfo", sender: self.allFirmwareInfo[indexPath.row])
-    }
-
-    private func applyLoadingView() {
-        guard self.loadingEffectBackgroundView == nil else {return}
-
-        let loadingIndicator = UIActivityIndicatorView(activityIndicatorStyle: .whiteLarge)
-        let loadingView = UIView()
-
-        loadingView.center = self.view.center
-        let distance: CGFloat = 40
-
-        loadingView.frame.size = CGSize(width: loadingIndicator.frame.size.width + distance, height: loadingIndicator.frame.size.height + distance)
-        loadingIndicator.center = CGPoint(x: loadingView.frame.size.width/2, y: loadingView.frame.size.height/2)
-
-        loadingView.backgroundColor = UIColor(white: 0, alpha: 0.7)
-        loadingView.isOpaque = false
-        loadingView.alpha = 0
-        loadingView.layer.masksToBounds = true
-        loadingView.layer.cornerRadius = 10
-        loadingView.translatesAutoresizingMaskIntoConstraints = false
-        loadingView.addSubview(loadingIndicator)
-
-        let centerXConstraint = NSLayoutConstraint(item: loadingView, attribute: .centerX, relatedBy: .equal, toItem: self.view, attribute: .centerX, multiplier: 1, constant: 0)
-        let centerYConstraint = NSLayoutConstraint(item: loadingView, attribute: .centerY, relatedBy: .equal, toItem: self.view, attribute: .centerY, multiplier: 1, constant: 0)
-        let heightConstraint = NSLayoutConstraint(item: loadingView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: loadingView.frame.size.height)
-        let widthConstraint = NSLayoutConstraint(item: loadingView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: loadingView.frame.size.width)
-
-        self.view.addSubview(loadingView)
-        NSLayoutConstraint.activate([centerXConstraint, centerYConstraint, heightConstraint, widthConstraint])
-
-        self.loadingEffectBackgroundView = loadingView
-        loadingIndicator.startAnimating()
-        UIView.animate(withDuration: 0.1) {
-            loadingView.alpha = 1
-        }
-    }
-    private func removeLoadingView() {
-        guard let loadingView = self.loadingEffectBackgroundView else {return}
-        self.loadingEffectBackgroundView = nil
-        UIView.animate(withDuration: 0.3, animations: {loadingView.alpha = 0}) { (_) in
-            loadingView.removeFromSuperview()
-        }
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        if #available(iOS 9.0, *), self.traitCollection.forceTouchCapability == .available {
-            registerForPreviewing(with: self, sourceView: self.tableView)
-        }
-        if #available(iOS 11.0, *) {
-            self.tableView.dragDelegate = self
-        }
-        self.tableView.tableFooterView = UIView(frame: .zero)
+        tableView.dragDelegate = self
+        tableView.tableFooterView = UIView(frame: .zero)
         let screenWidth = UIScreen.main.bounds.size.width
         let labelWidth: CGFloat = 220
-        self.bottomFootViewInTable = UILabel(frame: CGRect(x: (screenWidth - labelWidth)/2, y: 10, width: labelWidth, height: 30))
-        self.bottomFootViewInTable.adjustsFontSizeToFitWidth = true
-        self.bottomFootViewInTable.minimumScaleFactor = 12.5/self.bottomFootViewInTable.font.pointSize
-        self.bottomFootViewInTable.textColor = UIColor.gray
-        self.bottomFootViewInTable.textAlignment = .center
-        self.tableView.tableFooterView?.addSubview(self.bottomFootViewInTable)
-        self.tableView.contentInset.bottom = 16 + self.bottomFootViewInTable.bounds.size.height
+        bottomFootViewInTable = UILabel(frame: CGRect(x: (screenWidth - labelWidth)/2, y: 10, width: labelWidth, height: 30))
+        bottomFootViewInTable.adjustsFontSizeToFitWidth = true
+        bottomFootViewInTable.minimumScaleFactor = 12.5/bottomFootViewInTable.font.pointSize
+        bottomFootViewInTable.textColor = UIColor.gray
+        bottomFootViewInTable.textAlignment = .center
+        tableView.tableFooterView?.addSubview(bottomFootViewInTable)
+        tableView.contentInset.bottom = 16 + bottomFootViewInTable.bounds.size.height
         NotificationCenter.default.addObserver(self, selector: #selector(reloadTable), name: .ShowUnsignedFirmwarePreferenceChanged, object: nil)
-
-        if TSSRequest.localECID == nil {
-            let ecidPrompt = UIAlertController(title: "Enter ECID", message: "ECID is not available. Please enter ECID manually below. You can set ECID later in preferences.", preferredStyle: .alert)
-            ecidPrompt.addTextField { (textFieldForECID) in
-                textFieldForECID.clearButtonMode = .unlessEditing
-                textFieldForECID.placeholder = "ECID (Hex/Dec): "
-            }
-            ecidPrompt.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
-                TSSRequest.setECIDToPreferences(nil)
-            }))
-            ecidPrompt.addAction(UIAlertAction(title: "OK", style: .default, handler: { [unowned ecidPrompt] (_) in
-                if (!TSSRequest.setECIDToPreferences((ecidPrompt.textFields?.first?.text)!)) {
-                    let errorView = UIAlertController(title: LocalizedString.errorTitle, message: "Failed to parse ECID. Make sure you've entered a valid ECID", preferredStyle: .alert)
-                    errorView.addAction(UIAlertAction(title: "OK", style: .default, handler: { (_) in
-                        self.tabBarController!.present(ecidPrompt, animated: true)
-                    }))
-                    self.tabBarController!.present(errorView, animated: true)
-                }
-            }))
-            self.tabBarController!.present(ecidPrompt, animated: true)
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(deviceProfileHasChanged), name: .DeviceProfileHasChangedNotification, object: nil)
         // Do any additional setup after loading the view, typically from a nib.
     }
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        self.bottomFootViewInTable.center.x = self.view.center.x
+        bottomFootViewInTable.center.x = view.center.x
     }
-    private func refreshData(completionHandler: @escaping (() -> Void)) {
-        var request = URLRequest(url: URL(string: "https://api.ipsw.me/v4/device/\(GlobalConstants.localProductType)")!)
+    private func downloadDataFromRemote(completionHandler: @escaping (() -> Void)) {
+        let profile = PreferencesManager.shared.preferredProfile
+        var request = URLRequest(url: URL(string: "https://api.ipsw.me/v4/device/\(profile.deviceModel)")!)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async {
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-            }
             guard self.loadingEffectBackgroundView != nil else {
                 DispatchQueue.main.async(execute: completionHandler)
                 return
@@ -162,17 +83,17 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
                 return
             }
             if let data = data, let loadedDictionary = (((try? JSONSerialization.jsonObject(with: data)) as? [String : Any])?[JsonKeys.firmwares_Key]) as? [[String : Any]] {
-                self.loadedFullFirmwareInfo = loadedDictionary.flatMap { (firmwareDict) -> FirmwareInfo? in
+                self.allFirmwareInfo = loadedDictionary.compactMap { (firmwareDict) -> FirmwareInfo? in
                     guard let version = firmwareDict[JsonKeys.version_Key] as? String,
                         let buildID = firmwareDict[JsonKeys.buildid_Key] as? String,
                         let isSigning = firmwareDict[JsonKeys.signed_Key] as? Bool,
                         let url = firmwareDict[JsonKeys.url_Key] as? String else { return nil }
-                    return FirmwareInfo(deviceBoard: GlobalConstants.localDeviceBoard, deviceModel: GlobalConstants.localProductType, version: version, buildID: buildID, buildManifestURL: url, status: isSigning ? .Signed : .Not_Signed, releaseDate: (firmwareDict[JsonKeys.releasedate_Key] as? String)?.components(separatedBy: CharacterSet.uppercaseLetters).first)
+                    return FirmwareInfo(deviceBoard: profile.deviceBoard, deviceModel: profile.deviceModel, version: version, buildID: buildID, buildManifestURL: url, status: isSigning ? .signed : .notSigned, releaseDate: (firmwareDict[JsonKeys.releasedate_Key] as? String)?.components(separatedBy: CharacterSet.uppercaseLetters).first)
                 }
                 DispatchQueue.main.async {
                     self.reloadTable()
                     completionHandler()
-                    self.removeLoadingView()
+                    self.removeLoadingView(self.loadingEffectBackgroundView)
                 }
             }
             else {
@@ -185,77 +106,115 @@ class TSSViewController: UIViewController, UITableViewDelegate, UITableViewDataS
             }
         }
         task.resume()
-        self.refreshTask = task
+        refreshTask = task
     }
-    @IBAction private func refreshData(_ sender: UIBarButtonItem) {
-        if self.refreshTask == nil {
-            self.applyLoadingView()
-            self.refreshData {
-                self.removeLoadingView()
-                sender.title = "Refresh"
-            }
-            sender.title = "Cancel"
-        }
-        else {
-            self.removeLoadingView()
-            self.refreshTask?.cancel()
-            sender.title = "Refresh"
-        }
+    @IBAction private func refreshButtonTapped() {
+        guard refreshTask == nil else { return }
+        loadingEffectBackgroundView = applyLoadingView()
+        downloadDataFromRemote(completionHandler: cancelButtonTapped)
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .stop, target: self, action: #selector(cancelButtonTapped))
+    }
+    @objc private func cancelButtonTapped() {
+        removeLoadingView(loadingEffectBackgroundView)
+        refreshTask?.cancel()
+        navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .refresh, target: self, action: #selector(refreshButtonTapped))
     }
     // not used so far
-    private func fetchOTAData(deviceModel: String?) -> [[String : Any]]? {
-        let otaMetaDataURL = "http://mesu.apple.com/assets/com_apple_MobileAsset_SoftwareUpdate/com_apple_MobileAsset_SoftwareUpdate.xml"
-        guard let otaMetaData = NSDictionary.init(contentsOf: URL(string: otaMetaDataURL)!) else {
-            print("Failed to get ota data. ")
-            return nil
-        }
-        return otaMetaData.object(forKey: OTAMetaDataKeys.Assets_Key) as? [[String : Any]]
-    }
+//    private func fetchOTAData(deviceModel: String?) -> [[String : Any]]? {
+//        let otaMetaDataURL = "http://mesu.apple.com/assets/com_apple_MobileAsset_SoftwareUpdate/com_apple_MobileAsset_SoftwareUpdate.xml"
+//        guard let otaMetaData = NSDictionary.init(contentsOf: URL(string: otaMetaDataURL)!) else {
+//            print("Failed to get ota data. ")
+//            return nil
+//        }
+//        return otaMetaData.object(forKey: OTAMetaDataKeys.Assets_Key) as? [[String : Any]]
+//    }
+    
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let firmwarevc = segue.destination as? FirmwareInfoViewController, let sender = sender as? CustomFirmwareTableViewController.CustomRequest {
-            firmwarevc.firmwareInfo = sender
+        if let firmwarevc = segue.destination as? FirmwareInfoTableViewController, let sender = sender as? UITableViewCell {
+            firmwarevc.firmwareInfo = displayedFirmwareInfo[tableView.indexPath(for: sender)!.row]
         }
     }
     @objc private func reloadTable() {
-        guard let loadedFullFirmwareInfo = self.loadedFullFirmwareInfo else {
+        guard let loadedFullFirmwareInfo = allFirmwareInfo else {
             return
         }
         if !PreferencesManager.shared.isShowingUnsignedFirmware {
-            self.allFirmwareInfo = loadedFullFirmwareInfo.filter {
-                return $0.status.currentStatus == .Signed
+            displayedFirmwareInfo = loadedFullFirmwareInfo.filter {
+                return $0.status.currentStatus == .signed
             }
         }
         else {
-            self.allFirmwareInfo = loadedFullFirmwareInfo
+            displayedFirmwareInfo = loadedFullFirmwareInfo
         }
-        self.bottomFootViewInTable.text = "\(self.allFirmwareInfo.count) Firmware\(self.allFirmwareInfo.count == 1 ? "" : "s")"
-        self.tableView.reloadData()
+        bottomFootViewInTable.text = "\(displayedFirmwareInfo.count) Firmware\(displayedFirmwareInfo.count == 1 ? "" : "s")"
+        tableView.reloadData()
+    }
+    @objc private func deviceProfileHasChanged() {
+        bottomFootViewInTable.text = nil
+        allFirmwareInfo = nil
+        displayedFirmwareInfo = []
+        tableView.reloadData()
     }
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
 }
-@available(iOS 9.0, *)
-extension TSSViewController : UIViewControllerPreviewingDelegate {
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
-        guard let indexPath = self.tableView.indexPathForRow(at: location) else {return nil}
-        let firmwareInfoVC = self.storyboard?.instantiateViewController(withIdentifier: "Firmware Info") as! FirmwareInfoViewController
-        previewingContext.sourceRect = self.tableView.rectForRow(at: indexPath)
-        firmwareInfoVC.firmwareInfo = self.allFirmwareInfo[indexPath.row]
-        return firmwareInfoVC
-    }
-
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
-        self.show(viewControllerToCommit, sender: nil)
-    }
-}
-@available(iOS 11.0, *)
 extension TSSViewController : UITableViewDragDelegate {
     func tableView(_ tableView: UITableView, itemsForBeginning session: UIDragSession, at indexPath: IndexPath) -> [UIDragItem] {
-        session.localContext = self.allFirmwareInfo[indexPath.row].buildManifestURL
-        return [UIDragItem(itemProvider: NSItemProvider(object: self.allFirmwareInfo[indexPath.row].buildManifestURL as NSItemProviderWriting))]
+        session.localContext = displayedFirmwareInfo[indexPath.row].buildManifestURL
+        return [UIDragItem(itemProvider: NSItemProvider(object: displayedFirmwareInfo[indexPath.row].buildManifestURL as NSItemProviderWriting))]
     }
 }
 extension NSNotification.Name {
     static let ShowUnsignedFirmwarePreferenceChanged =  NSNotification.Name(rawValue: "ShowUnsignedFirmwarePreferenceChanged")
+}
+// load view utilities
+extension UIViewController {
+    func applyLoadingView() -> UIView {
+//        guard loadingEffectBackgroundView == nil else {return}
+
+        let loadingIndicator = UIActivityIndicatorView(style: .whiteLarge)
+        let loadingView = UIView()
+
+        let distance: CGFloat = 40
+
+        loadingView.frame.size = CGSize(width: loadingIndicator.frame.size.width + distance, height: loadingIndicator.frame.size.height + distance)
+        loadingIndicator.center = CGPoint(x: loadingView.frame.size.width/2, y: loadingView.frame.size.height/2)
+
+        loadingView.backgroundColor = UIColor(white: 0, alpha: 0.7)
+        loadingView.isOpaque = false
+        loadingView.alpha = 0
+        loadingView.layer.masksToBounds = true
+        loadingView.layer.cornerRadius = 10
+        loadingView.translatesAutoresizingMaskIntoConstraints = false
+        loadingView.addSubview(loadingIndicator)
+
+        view.addSubview(loadingView)
+        let parentView: UIView = {
+            if let nav = navigationController?.view {
+                return nav
+            }
+            if let tab = tabBarController?.view {
+                return tab
+            }
+            return view
+        }()
+        loadingView.centerXAnchor.constraint(equalTo: parentView.centerXAnchor, constant: 0).isActive = true
+        loadingView.centerYAnchor.constraint(equalTo: parentView.centerYAnchor, constant: 0).isActive = true
+        loadingView.heightAnchor.constraint(equalToConstant: loadingView.bounds.size.height).isActive = true
+        loadingView.widthAnchor.constraint(equalToConstant: loadingView.bounds.size.width).isActive = true
+
+//        loadingEffectBackgroundView = loadingView
+        loadingIndicator.startAnimating()
+        UIView.animate(withDuration: 0.1) {
+            loadingView.alpha = 1
+        }
+        return loadingView
+    }
+    func removeLoadingView(_ loadingView: UIView?) {
+        guard let loadingView = loadingView else {return}
+        UIView.animate(withDuration: 0.3, animations: {loadingView.alpha = 0}) { (_) in
+            loadingView.removeFromSuperview()
+        }
+    }
 }

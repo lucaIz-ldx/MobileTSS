@@ -32,7 +32,7 @@ int downloadPartialzip(const char *url, const char *file, TSSDataBuffer *dst, TS
     //    int ret = fragmentzip_download_file(info, file, dst, fragmentzip_callback);
     int ret = fragmentzip_download_file(info, file, dst, NULL, userData);
 
-    if (ret) {
+    if (ret && userData) {
         userData->errorCode = ret;
         log_console("[LFZP] Bad return code: %d.\n", ret);
         log_console("[LFZP] failed to download file %s\n", file);
@@ -61,7 +61,7 @@ void write_plist(plist_t plist, const char *path) {
     free(data);
     fclose(f);
 }
-static void getRandNum(char *dst, size_t size, int base) {
+static void getRandNum(unsigned char *dst, size_t size, int base) {
     srand((unsigned int)time(NULL));
     for (int i=0; i<size; i++) {
         int j;
@@ -151,9 +151,6 @@ size_t apNonceLengthForDeviceModel(const char *deviceModel) {
         return atoi(deviceModelNumber) >= 7 ? apNonceLengthNew : apNonceLengthPreiPhone7;
     }
     if (strstr(deviceModel, "iPod") == deviceModel) {
-        // iPod 7th??!!
-        // iPod 6-gen -- iPod7,1
-        // iPod 7-gen -- iPod9,1  <- to be confirmed.
         strcpy(deviceModelNumber, deviceModel + 4);
         *index(deviceModelNumber, ',') = '\0';
         return atoi(deviceModelNumber) > 7 ? apNonceLengthNew : apNonceLengthPreiPhone7;
@@ -197,7 +194,7 @@ static int tss_populate_random(plist_t tssreq, int is64bit, DeviceInfo_BridgedCS
         }
         else {
             // get a random generator.
-            getRandNum((char *)zz, 8, 256);
+            getRandNum(zz, 8, 256);
             snprintf(device->generator, generatorBufferSize, "0x%02x%02x%02x%02x%02x%02x%02x%02x",zz[7],zz[6],zz[5],zz[4],zz[3],zz[2],zz[1],zz[0]);
         }
         if (requiredApNonceLength == apNonceLengthPreiPhone7) {
@@ -222,7 +219,6 @@ static int tss_populate_random(plist_t tssreq, int is64bit, DeviceInfo_BridgedCS
     device->sepnonce.length >>= 1;
     if (sepnonceRequired) {
         // sepnonce is required.
-        // MARK: SEP nonce is actually never used during a restore but now used for request a ticket from tss.
         if (device->sepnonce.buffer && device->sepnonce.length != requiredSepNonceLength) {
             error("parsed SEPNoncelen != requiredSEPNoncelen (%lu != %zu)",device->sepnonce.length, requiredSepNonceLength);
             return -1;
@@ -230,7 +226,7 @@ static int tss_populate_random(plist_t tssreq, int is64bit, DeviceInfo_BridgedCS
         if (!device->sepnonce.buffer && device->sepnonce.length) {
             device->sepnonce.buffer = malloc(requiredSepNonceLength + 1);
             device->sepnonce.length = requiredSepNonceLength;
-            getRandNum(device->sepnonce.buffer, requiredSepNonceLength, 256);
+            getRandNum((unsigned char *)device->sepnonce.buffer, requiredSepNonceLength, 256);
             device->sepnonce.buffer[requiredSepNonceLength] = '\0';
         }
     }

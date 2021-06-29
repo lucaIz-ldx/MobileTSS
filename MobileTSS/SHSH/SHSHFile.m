@@ -8,7 +8,6 @@
 #import "SHSHFile.h"
 #import "img4tool.h"
 #import "img4.h"
-#import "validate.h"
 
 #define SET_ERROR_CODE_LOCALIZED(errCode, msg) do {if (error){\
 *error = [NSError errorWithDomain:TSSSHSHErrorDomain code:errCode userInfo:@{NSLocalizedDescriptionKey : msg}];\
@@ -73,7 +72,7 @@ static void messageFromImg4tool(void *userData, const char *message) {
                 return nil;
             }
         }
-        else if ((mainTicketPlist = plist_dict_get_item(shshPlist, "APTicket"))) {
+        else if (plist_dict_get_item(shshPlist, "APTicket")) {
             img3Content = shshPlist;
             shshPlist = NULL;
             self.imageType = SHSHImageTypeIMG3;
@@ -83,7 +82,7 @@ static void messageFromImg4tool(void *userData, const char *message) {
             SET_ERROR_CODE_LOCALIZED(-126, @"Invalid SHSH file.");
             return nil;
         }
-        if (sequenceHasName(self.rootTicketContent.buffer, "IM4M")) {
+        if (sequenceHasName(self.rootTicketContent.buffer, "IM4M", NULL)) {
             self.imageType = SHSHImageTypeIM4M;
             imageInfo = getIM4MInfoDict(self.rootTicketContent.buffer, &userData);
         }
@@ -112,7 +111,7 @@ static void messageFromImg4tool(void *userData, const char *message) {
             return nil;
         }
         userData.userData = (__bridge void *)self;
-        userData.messageCall = &messageFromImg4tool;
+        userData.callback = &messageFromImg4tool;
         plist_t updateTicket = plist_dict_get_item(shshPlist, "updateInstall");
 
         if (updateTicket && PLIST_IS_DICT(updateTicket)) {
@@ -137,7 +136,7 @@ static void messageFromImg4tool(void *userData, const char *message) {
     return [self.logStorage copy];
 }
 - (NSString *) errorMessage {
-    return userData.errorMessage[0] ? [NSString stringWithCString:userData.errorMessage encoding:NSASCIIStringEncoding] : nil;
+    return userData.errorMessage[0] ? [NSString stringWithCString:userData.errorMessage encoding:NSASCIIStringEncoding] : @"Unknown error (check log for details).";
 }
 - (NSDictionary<NSString *, id> *) img4InfoDictionary {
     if (!_img4InfoDictionary && imageInfo) {
@@ -164,7 +163,7 @@ static void messageFromImg4tool(void *userData, const char *message) {
     return self.manifestProperty[@"ECID"];
 }
 - (BOOL) isVerificationSupported {
-    return self.imageType == SHSHImageTypeIM4M || self.imageType == SHSHImageTypeIMG3/* || self.imageType == SHSHImageTypeIMG4*/;
+    return NO;//self.imageType == SHSHImageTypeIM4M;
 }
 - (BOOL) verifyWithBuildIdentity: (TSSBuildIdentity *) buildIdentity error: (NSError * _Nullable __autoreleasing *) error {
     userData.errorMessage[0] = userData.buffer[0] = '\0';
@@ -173,9 +172,6 @@ static void messageFromImg4tool(void *userData, const char *message) {
     if (!self.verificationSupported) {
         SET_ERROR_CODE_LOCALIZED(-128, @"Verification is not supported on current type.");
         return NO;
-    }
-    if (self.imageType == SHSHImageTypeIMG3) {
-        return [self verifyIMG3WithBuildIdentity:buildIdentity error:error];
     }
     if (self.verifyGenerator) {
         if (self.generator && verifyGenerator(self.rootTicketContent.buffer, [self.generator cStringUsingEncoding:NSASCIIStringEncoding], &userData)) {
@@ -200,14 +196,6 @@ static void messageFromImg4tool(void *userData, const char *message) {
             SET_ERROR_CODE_LOCALIZED(userData.errorCode, self.errorMessage);
             return NO;
         }
-    }
-    return YES;
-}
-- (BOOL) verifyIMG3WithBuildIdentity: (TSSBuildIdentity *) buildIdentity error: (NSError * _Nullable __autoreleasing *) error {
-    extern int verifyIMG3WithIdentity(plist_t shshDict, plist_t buildIdentity, TSSCustomUserData *userData);
-    if (verifyIMG3WithIdentity(img3Content, buildIdentity.eraseInstall, &userData)) {
-        SET_ERROR_CODE_LOCALIZED(-1, self.errorMessage);
-        return NO;
     }
     return YES;
 }

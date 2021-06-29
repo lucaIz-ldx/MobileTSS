@@ -34,7 +34,7 @@ void printIM4P(char *buf, TSSCustomUserData *userData);
 void printIM4R(char *buf, TSSCustomUserData *userData);
 plist_dict_t getIM4MInfoDict(const char *buf, TSSCustomUserData *userData);
 
-int sequenceHasName(const char *buf, const char *name);
+int sequenceHasName(const char *buf, const char *name, TSSCustomUserData *userData);
 int getSequenceName(const char *buf,char**name, size_t *nameLen, TSSCustomUserData *userData);
 //size_t asn1GetPrivateTagnum(t_asn1Tag *tag, size_t *sizebytes);
 int extractFileFromIM4P(char *buf, const char *dstFilename);

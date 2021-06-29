@@ -8,6 +8,9 @@
 
 #import <Foundation/Foundation.h>
 #import "TSSBuildIdentity.h"
+#import "TSSFirmwareVersion.h"
+#import "TSSNonce.h"
+#import "TSSECID.h"
 
 typedef NS_ENUM(NSInteger, TSSFirmwareSigningStatus) {
     TSSFirmwareSigningStatusNotSigned = 0,
@@ -16,61 +19,64 @@ typedef NS_ENUM(NSInteger, TSSFirmwareSigningStatus) {
 };
 NS_ASSUME_NONNULL_BEGIN
 
-FOUNDATION_EXTERN NSString *const TSSRequestErrorDomain;
-FOUNDATION_EXTERN NSString *const TSSTimeoutPreferencesKey;
+FOUNDATION_EXTERN NSErrorDomain const TSSRequestErrorDomain;
 
 @class TSSRequest;
 @protocol TSSRequestDelegate <NSObject>
-- (void) request: (TSSRequest *) request sendMessageOutput: (NSString *) output;
+- (void) request: (TSSRequest *) request verboseOutput: (NSString *) output;
 @end
 
+// concurrency is not supported; make sure call APIs on single thread 
 @interface TSSRequest : NSObject
-@property (class, readonly, copy, nonatomic, nullable) NSString *localECID;
-@property (class, copy, nonatomic, nullable) NSString *savingDestination;
+/// TSSRequest will cache downloaded buildmanifest to directory if not nil; default is nil
+@property (class, copy, nonatomic, nullable) NSString *buildManifestCacheDirectory;
 
-@property (readonly, nonatomic, getter=isOTAVersion) BOOL otaVersion;
-
-@property (weak, nonatomic) id<TSSRequestDelegate> delegate;
-// default is 0 which is unlimited. The unit is second.
+/// Connection timeout in seconds. TSSRequest will retry to connect after timeout expires. Default is 0 which is unlimited.
 @property (nonatomic) NSTimeInterval timeout;
-// nonnull only if valid firmware url and device board is nonnull when init, and a device is selected.
-@property (readonly, copy, nonatomic, nullable) NSString *deviceModel, *deviceBoardConfig, *version, *buildID;
-// nonnull if device board is undetermined (nil) when init.
+@property (weak, nonatomic) id<TSSRequestDelegate> delegate;
+
+// nonnull only if a valid deviceboard is provided when init, or a device is selected after URL validation.
+@property (readonly, copy, nonatomic, nullable) NSString *deviceModel, *deviceBoardConfig;
+
+// nonnull if deviceboard is nil when init and URL validation succeeds.
 @property (readonly, copy, nonatomic, nullable) NSArray<NSString *> *supportedDevices;
-// set nil will generate a random ecid.
-@property (copy, nonatomic, null_resettable) NSString *ecid;
 
-@property (copy, nonatomic, nullable) NSString *apnonce, *sepnonce;
-@property (copy, nonatomic, nullable) NSString *generator;
-
-// block caller thread.
-@property (readonly, nonatomic, nullable) NSError *firmwareURLError;
-// download from internet if no cache found.
+// firmwareVersion will be nonnull after URL validation succeeds
+@property (readonly, nonatomic, nullable) TSSFirmwareVersion *firmwareVersion;
+// buildIdentity will be nonnull after URL validation succeeds and deviceBoard is determined (nonnull)
 @property (readonly, nonatomic, nullable) TSSBuildIdentity *currentBuildIdentity;
-// use class property
-+ (BOOL) setECIDToPreferences: (nullable NSString *) ecid;
 
-+ (int64_t) parseECIDInString: (NSString *) ecidInString;
-+ (void) setBuildManifestStorageLocation: (NSString *) location;
-+ (BOOL) parseNonceInString: (NSString *) apnonce error: (NSError *__autoreleasing *__nullable) error;
-+ (BOOL) parseGeneratorInString: (NSString *) generator error: (NSError *__autoreleasing *__nullable) error;
+// By default TSSRequest will generate a random ECID if ecid is not provided when init; set to nil will generate a new random ecid.
+@property (strong, nonatomic, null_resettable) TSSECID *ecid;
+
+// these properties will be nonnull after checking signing status (depending on device, pre-A7 devices do not have sepnonce)
+@property (strong, nonatomic, nullable) TSSAPNonce *apnonce;
+@property (strong, nonatomic, nullable) TSSSEPNonce *sepnonce;
+@property (strong, nonatomic, nullable) TSSGenerator *generator;
 
 - (instancetype) init NS_UNAVAILABLE;
 // use nil for deviceBoard to indicate unknown machine model. A list of machine models will be fetched after validate URL.
 - (instancetype) initWithFirmwareURL: (NSString *) urlInString;
-- (instancetype) initWithFirmwareURL: (NSString *) urlInString DeviceBoardConfiguration: (nullable NSString *) deviceBoardConfiguration;
-- (instancetype) initWithFirmwareURL: (NSString *) urlInString DeviceBoardConfiguration: (nullable NSString *) deviceBoardConfiguration Ecid: (nullable NSString *) ecid NS_DESIGNATED_INITIALIZER;
+- (instancetype) initWithFirmwareURL: (NSString *) urlInString deviceBoardConfiguration: (nullable NSString *) deviceBoardConfiguration;
+- (instancetype) initWithFirmwareURL: (NSString *) urlInString deviceBoardConfiguration: (nullable NSString *) deviceBoardConfiguration ecid: (nullable TSSECID *) ecid NS_DESIGNATED_INITIALIZER;
 
-- (void) selectDeviceInSupportedList: (NSString *) device;
+- (BOOL) validateURLWithError:(NSError *__autoreleasing  _Nullable *)error;
+- (void) validateURLWithCompletionHandler: (void (^) (BOOL result, NSError *__nullable error)) completionHandler;
+
+- (void) selectDeviceInSupportedListAtIndex: (NSUInteger) index;
 // block caller thread.
 - (TSSFirmwareSigningStatus) checkSigningStatusWithError:(NSError *__autoreleasing *__nullable) error;
 // Asynchronous
-- (void) checkSigningStatusWithCompletionHandler:(nonnull void (^)(TSSFirmwareSigningStatus status, NSError *__nullable error))completionHandler;
+- (void) checkSigningStatusWithCompletionHandler:(void (^)(TSSFirmwareSigningStatus status, NSError *__nullable error))completionHandler;
 
 // block caller thread
-- (nullable NSString *) fetchSHSHBlobsWithError: (NSError *__autoreleasing *__nullable) error;
+- (nullable NSString *) downloadSHSHBlobsAtDirectory: (NSString *) directory error: (NSError *__autoreleasing *__nullable) error;
+// completionHandler will be executed on a background thread
+- (void) downloadSHSHBlobsAtDirectory: (NSString *) directory completionHandler: (void (^) (NSString *__nullable fileName, NSError *__nullable error)) completionHandler;
 
-- (void) cancelGlobalConnection;
+// use this method to cancel all connections (validation, signing status check, and download blobs)
+// this method is safe to call on other threads if using thread-blocking methods above
+- (void) cancel;
 
 @end
 NS_ASSUME_NONNULL_END

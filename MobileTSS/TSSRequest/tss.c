@@ -39,7 +39,7 @@
 //#include "config.h"
 //#endif
 
-#define TSS_CLIENT_VERSION_STRING "libauthinstall-698.0.5"
+#define TSS_CLIENT_VERSION_STRING "libauthinstall-776.100.16"
 #define ECID_STRSIZE 0x20
 #define GET_RAND(min, max) ((rand() % (max - min)) + min)
 #define debug(a...)
@@ -203,18 +203,6 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
     string = NULL;
     node = NULL;
 
-    /* BMU,BoardID */
-    node = plist_dict_get_item(build_identity, "BMU,BoardID");
-    if (node) {
-        plist_dict_set_item(parameters, "BMU,BoardID", plist_copy(node));
-    }
-
-    /* BMU,ChipID */
-    node = plist_dict_get_item(build_identity, "BMU,ChipID");
-    if (node) {
-        plist_dict_set_item(parameters, "BMU,ChipID", plist_copy(node));
-    }
-
     /* BbChipID */
     int bb_chip_id = 0;
     char* bb_chip_id_string = NULL;
@@ -226,9 +214,9 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
         free(bb_chip_id_string);
         bb_chip_id_string = NULL;
     }
-//    else {
-//        debug("NOTE: Unable to find BbChipID node\n");
-//    }
+    else {
+        debug("NOTE: Unable to find BbChipID node\n");
+    }
     node = NULL;
 
     /* BbProvisioningManifestKeyHash */
@@ -280,9 +268,9 @@ int tss_parameters_add_from_manifest(plist_t parameters, plist_t build_identity,
     if (node && plist_get_node_type(node) == PLIST_DATA) {
         plist_dict_set_item(parameters, "BbSkeyId", plist_copy(node));
     }
-//    else {
-//        debug("NOTE: Unable to find BbSkeyId node\n");
-//    }
+    else {
+        debug("NOTE: Unable to find BbSkeyId node\n");
+    }
     node = NULL;
 
     /* SE,ChipID - Used for SE firmware request */
@@ -1148,12 +1136,10 @@ static int tss_request_send_raw(const char *request, const char* server_url_stri
         curl_easy_setopt(handle, CURLOPT_POSTFIELDS, request);
         curl_easy_setopt(handle, CURLOPT_USERAGENT, "InetURL/1.0");
         curl_easy_setopt(handle, CURLOPT_POSTFIELDSIZE, strlen(request));
-        if (userData) {
-            curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progress_callback);
-            curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
-            curl_easy_setopt(handle, CURLOPT_PROGRESSDATA, userData);
-        }
-        if (userData && userData->timeout != 0) {
+        curl_easy_setopt(handle, CURLOPT_XFERINFOFUNCTION, progress_callback);
+        curl_easy_setopt(handle, CURLOPT_NOPROGRESS, 0);
+        curl_easy_setopt(handle, CURLOPT_PROGRESSDATA, userData);
+        if (userData->timeout != 0) {
             const long connection_timeout = userData->timeout;
             const long total_transfer_timeout = 3 + userData->timeout;
 
@@ -1193,7 +1179,7 @@ static int tss_request_send_raw(const char *request, const char* server_url_stri
             if (resultCode == CURLE_ABORTED_BY_CALLBACK) {
                 // abort by user.
                 free(response.buffer);
-                writeErrorMsg("Abort by user.");
+                writeErrorMsg("Abort by caller.");
                 return Abort_By_User;
             }
             error("Bad Request Code: %d. %s\n", resultCode, curl_error_message);

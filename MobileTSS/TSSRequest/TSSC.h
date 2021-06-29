@@ -6,9 +6,8 @@
 //  Copyright © 2018 User. All rights reserved.
 //
 
-#include "TSSIO_iOS.h"
 #include <plist/plist.h>
-
+#include "TSSIO_iOS.h"
 _Pragma("clang assume_nonnull begin")
 
 static const size_t generatorBufferSize = 16 + 2 + 1;

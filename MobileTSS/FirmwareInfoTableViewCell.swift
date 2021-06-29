@@ -19,17 +19,17 @@ class FirmwareInfoTableViewCell: UITableViewCell {
     private var contentLabel: UILabel?
     private(set) var contentTextField: UITextField?
 
-    override init(style: UITableViewCellStyle, reuseIdentifier: String?) {
+    override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        self.cellInit()
+        cellInit()
     }
 
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        self.cellInit()
+        cellInit()
     }
     private func createContentLabel() {
-        let rvalueViewFrame = CGRect(x: intervalBetweenViewsAndSideBorder + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel, y: intervalBetweenViewsAndTopBottomBorder, width: self.bounds.size.width - (intervalBetweenViewsAndSideBorder * 2 + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel), height: self.identifierLabel.bounds.size.height)
+        let rvalueViewFrame = CGRect(x: intervalBetweenViewsAndSideBorder + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel, y: intervalBetweenViewsAndTopBottomBorder, width: bounds.size.width - (intervalBetweenViewsAndSideBorder * 2 + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel), height: identifierLabel.bounds.size.height)
         let contentLabel = UILabel(frame: rvalueViewFrame)
 
         contentLabel.adjustsFontSizeToFitWidth = true
@@ -39,22 +39,22 @@ class FirmwareInfoTableViewCell: UITableViewCell {
         contentLabel.font = UIFont.systemFont(ofSize: 17)
 
         contentLabel.textAlignment = .center
-        self.contentView.addSubview(contentLabel)
+        contentView.addSubview(contentLabel)
         self.contentLabel = contentLabel
     }
 
     var rvalueEditable: Bool {
         get {
-            return self.contentTextField != nil
+            return contentTextField != nil
         }
         set {
             // if an actual change is made.
-            guard self.rvalueEditable != newValue else {return}
-            let rvalueViewFrame = CGRect(x: intervalBetweenViewsAndSideBorder + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel, y: intervalBetweenViewsAndTopBottomBorder, width: self.bounds.size.width - (intervalBetweenViewsAndSideBorder * 2 + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel), height: self.identifierLabel.bounds.size.height)
+            guard rvalueEditable != newValue else {return}
+            let rvalueViewFrame = CGRect(x: intervalBetweenViewsAndSideBorder + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel, y: intervalBetweenViewsAndTopBottomBorder, width: bounds.size.width - (intervalBetweenViewsAndSideBorder * 2 + widthForIdentifierLabel + intervalBetweenIdentifierLabelAndContentLabel), height: identifierLabel.bounds.size.height)
             if newValue {
-                let currentContent = self.contentLabel?.text ?? ""
-                self.contentLabel?.removeFromSuperview()
-                self.contentLabel = nil
+                let currentContent = contentLabel?.text ?? ""
+                contentLabel?.removeFromSuperview()
+                contentLabel = nil
                 let _contentTextField = UITextField(frame: rvalueViewFrame)
                 _contentTextField.text = currentContent
                 _contentTextField.autoresizingMask = [.flexibleWidth, .flexibleLeftMargin]
@@ -62,31 +62,31 @@ class FirmwareInfoTableViewCell: UITableViewCell {
                 _contentTextField.keyboardType = .asciiCapable
                 _contentTextField.textAlignment = .center
                 _contentTextField.returnKeyType = .done
-                self.contentTextField = _contentTextField
-                self.contentView.addSubview(_contentTextField)
+                contentTextField = _contentTextField
+                contentView.addSubview(_contentTextField)
             }
             else {
-                self.contentTextField?.removeFromSuperview()
-                self.contentTextField = nil
+                contentTextField?.removeFromSuperview()
+                contentTextField = nil
 //                createContentLabel(rvalueViewFrame)
             }
         }
     }
     var identifierText: String? {
         get {
-            return self.identifierLabel.text
+            return identifierLabel.text
         }
         set {
-            self.identifierLabel?.text = newValue
+            identifierLabel?.text = newValue
         }
     }
     var contentText: String? {
         get {
-            return self.contentLabel == nil ? self.contentTextField?.text : self.contentLabel?.text
+            return contentLabel == nil ? contentTextField?.text : contentLabel?.text
         }
         set {
-            self.contentLabel?.text = newValue
-            self.contentTextField?.text = newValue
+            contentLabel?.text = newValue
+            contentTextField?.text = newValue
         }
     }
 
@@ -96,14 +96,14 @@ class FirmwareInfoTableViewCell: UITableViewCell {
     private let intervalBetweenIdentifierLabelAndContentLabel: CGFloat = 20
 
     private func cellInit() {
-        self.identifierLabel = UILabel(frame: CGRect(x: intervalBetweenViewsAndSideBorder, y: intervalBetweenViewsAndTopBottomBorder, width: widthForIdentifierLabel, height: self.bounds.size.height - 2 * intervalBetweenViewsAndTopBottomBorder))
-        self.identifierLabel.adjustsFontSizeToFitWidth = true
-        self.identifierLabel.minimumScaleFactor = 12/self.identifierLabel.font.pointSize
-//        self.identifierLabel.font = UIFont.systemFont(ofSize: 17)
-//        self.identifierLabel.textAlignment = .center
-        self.identifierLabel.autoresizingMask = [.flexibleWidth, .flexibleRightMargin]
+        identifierLabel = UILabel(frame: CGRect(x: intervalBetweenViewsAndSideBorder, y: intervalBetweenViewsAndTopBottomBorder, width: widthForIdentifierLabel, height: bounds.size.height - 2 * intervalBetweenViewsAndTopBottomBorder))
+        identifierLabel.adjustsFontSizeToFitWidth = true
+        identifierLabel.minimumScaleFactor = 12/identifierLabel.font.pointSize
+//        identifierLabel.font = UIFont.systemFont(ofSize: 17)
+//        identifierLabel.textAlignment = .center
+        identifierLabel.autoresizingMask = [.flexibleWidth, .flexibleRightMargin]
 
-        self.contentView.addSubview(self.identifierLabel)
-        self.createContentLabel()
+        contentView.addSubview(identifierLabel)
+        createContentLabel()
     }
 }

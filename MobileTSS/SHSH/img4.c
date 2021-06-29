@@ -226,7 +226,7 @@ const char *asn1ElementAtIndex(const char *buf, int index) {
     return (const char *)ret;
 }
 
-int getSequenceName(const char *buf,char **name, size_t *nameLen, TSSCustomUserData *userData) {
+int getSequenceName(const char *buf,char **name, size_t *nameLen, TSSCustomUserData *__nonnull userData) {
 #define reterror(a ...){error(a); err = -1; goto error;}
     int err = 0;
     if (((t_asn1Tag*)buf)->tagNumber != kASN1TagSEQUENCE)
@@ -488,10 +488,10 @@ int extractFileFromIM4P(char *buf, const char *dstFilename){
     return 0;
 }
 */
-int sequenceHasName(const char *buf, const char *name) {
+int sequenceHasName(const char *buf, const char *name, TSSCustomUserData *userData) {
     char *magic = NULL;
     size_t l = 0;
-    int err = getSequenceName(buf, &magic, &l, NULL);
+    int err = getSequenceName(buf, &magic, &l, userData);
     return !err && magic && strncmp(name, magic, l) == 0;
 }
 
@@ -637,7 +637,7 @@ plist_dict_t getIM4MInfoDict(const char *buf, TSSCustomUserData *userData){
     plist_dict_t im4mInfoDict = NULL;
     char *magic = NULL;
     size_t l = 0;
-    getSequenceName(buf, &magic, &l, NULL);
+    getSequenceName(buf, &magic, &l, userData);
     if (magic && strncmp("IM4M", magic, l)) {
         error("unexpected \"%.*s\", expected \"IM4M\"\n",(int)l,magic);
         goto error;

@@ -9,10 +9,10 @@ import UIKit
 
 class CustomFirmwareTableViewController: UITableViewController {
     enum SigningStatus {
-        case Signed
-        case Not_Signed
-        case Unknown    // default, when a new request is created.
-        case Error  // an error has occurred
+        case signed
+        case notSigned
+        case unknown    // default, when a new request is created.
+        case error  // an error has occurred
     }
     class CustomRequest {
         struct ArchivableKeys {
@@ -39,23 +39,24 @@ class CustomFirmwareTableViewController: UITableViewController {
         fileprivate(set) var status: FetchedTSSResult
 
         var visibleInfoDictionary: [(String, String)] {
-            return Array(zip([JsonKeys.identifier_Key, "Board", JsonKeys.version_Key, JsonKeys.buildid_Key], [self.deviceModel, self.deviceBoard, self.version, self.buildID]))
+            
+            return Array(zip([LocalizedString.identifier, LocalizedString.board, LocalizedString.version, LocalizedString.buildid], [deviceModel, deviceBoard, version, buildID]))
         }
 
         fileprivate var archivableDictionary: [String : Any] {
-            var dict = [CustomRequest.ArchivableKeys.BuildManifestURL_Key: self.buildManifestURL,
-                        CustomRequest.ArchivableKeys.BuildID_Key: self.buildID,
-                        CustomRequest.ArchivableKeys.Version_Key: self.version,
-                        CustomRequest.ArchivableKeys.isOTAVersion_Key: self.isOTA,
-                        CustomRequest.ArchivableKeys.DeviceModel_Key: self.deviceModel,
-                        CustomRequest.ArchivableKeys.DeviceBoard_Key: self.deviceBoard] as [String : Any]
-            if let label = self.label {
-                dict[CustomRequest.ArchivableKeys.Label_Key] = label
+            var dict = [ArchivableKeys.BuildManifestURL_Key: buildManifestURL,
+                        ArchivableKeys.BuildID_Key: buildID,
+                        ArchivableKeys.Version_Key: version,
+                        ArchivableKeys.isOTAVersion_Key: isOTA,
+                        ArchivableKeys.DeviceModel_Key: deviceModel,
+                        ArchivableKeys.DeviceBoard_Key: deviceBoard] as [String : Any]
+            if let label = label {
+                dict[ArchivableKeys.Label_Key] = label
             }
             return dict
         }
         fileprivate var description: String {
-            return self.label ?? "\(self.deviceModel) - \(self.version) (\(self.buildID))\(self.isOTA ? " - OTA" : "")"
+            return label ?? "\(deviceModel) - \(version) (\(buildID))\(isOTA ? " - OTA" : "")"
         }
 
         init(deviceBoard: String, deviceModel: String, version: String, buildID: String, buildManifestURL: String, isOTA: Bool, status: FetchedTSSResult? = nil) {
@@ -65,25 +66,25 @@ class CustomFirmwareTableViewController: UITableViewController {
             self.buildID = buildID
             self.isOTA = isOTA
             self.buildManifestURL = buildManifestURL
-            self.status = status ?? FetchedTSSResult(currentStatus: .Unknown)
+            self.status = status ?? FetchedTSSResult(currentStatus: .unknown)
         }
 
         fileprivate init?(_ archivedDictionary: [String : Any]) {
-            guard let deviceModel = archivedDictionary[CustomRequest.ArchivableKeys.DeviceModel_Key] as? String,
-                let version = archivedDictionary[CustomRequest.ArchivableKeys.Version_Key] as? String,
-                let buildID = archivedDictionary[CustomRequest.ArchivableKeys.BuildID_Key] as? String,
-                let buildManifestURL = archivedDictionary[CustomRequest.ArchivableKeys.BuildManifestURL_Key] as? String, { () -> Bool in
+            guard let deviceModel = archivedDictionary[ArchivableKeys.DeviceModel_Key] as? String,
+                let version = archivedDictionary[ArchivableKeys.Version_Key] as? String,
+                let buildID = archivedDictionary[ArchivableKeys.BuildID_Key] as? String,
+                let buildManifestURL = archivedDictionary[ArchivableKeys.BuildManifestURL_Key] as? String, { () -> Bool in
                     if let buildManifestURL = URL(string: buildManifestURL) {
                         return UIApplication.shared.canOpenURL(buildManifestURL)
                     }
                     return false
                 }() else { return nil }
-            if let deviceBoard = archivedDictionary[CustomRequest.ArchivableKeys.DeviceBoard_Key] as? String {
+            if let deviceBoard = archivedDictionary[ArchivableKeys.DeviceBoard_Key] as? String {
                 self.deviceBoard = deviceBoard
             }
             else if let foundBoard = findDeviceInfoForSpecifiedModel(deviceModel)?.pointee.deviceBoardConfiguration {
                 // !!!: might cause board mismatch problem.
-                self.deviceBoard = String(cString: foundBoard)
+                deviceBoard = String(cString: foundBoard)
             }
             else {
                 return nil
@@ -92,9 +93,9 @@ class CustomFirmwareTableViewController: UITableViewController {
             self.version = version
             self.buildID = buildID
             self.buildManifestURL = buildManifestURL
-            self.isOTA = archivedDictionary[CustomRequest.ArchivableKeys.isOTAVersion_Key] as? Bool ?? false
-            self.label = archivedDictionary[CustomRequest.ArchivableKeys.Label_Key] as? String
-            self.status = FetchedTSSResult(currentStatus: .Unknown)
+            isOTA = archivedDictionary[ArchivableKeys.isOTAVersion_Key] as? Bool ?? false
+            label = archivedDictionary[ArchivableKeys.Label_Key] as? String
+            status = FetchedTSSResult(currentStatus: .unknown)
         }
     }
 
@@ -113,73 +114,68 @@ class CustomFirmwareTableViewController: UITableViewController {
         static func ==(_ firstResult: FetchedTSSResult, _ anotherFetchedTSSResult: FetchedTSSResult) -> Bool {
             return firstResult.currentStatus == anotherFetchedTSSResult.currentStatus
         }
-        static func firmwareSigningStatusConverter(_ status: TSSFirmwareSigningStatus) -> SigningStatus {
-            switch status {
-            case .notSigned:
-                return .Not_Signed
-            case .signed:
-                return .Signed
-            case .error:
-                return .Error
-            }
-        }
     }
 
     @IBOutlet private var editBarButton: UIBarButtonItem!
     private weak var loadingAlertView: UIAlertController?
 
-    private var storedCustomRequest: [CustomRequest] = (NSArray.init(contentsOfFile: GlobalConstants.customRequestDataFilePath) as? [[String : Any]])?.flatMap {CustomRequest($0)} ?? []
+    private var storedCustomRequest: [CustomRequest] = (NSArray(contentsOfFile: GlobalConstants.customRequestDataFilePath) as? [[String : Any]])?.compactMap {CustomRequest($0)} ?? []
     private var modifiedList: Bool = false
 
     private weak var currentRequest: TSSRequest?
-
+    private var viewAppearedAction: (() -> Void)?
     var numberOfRequest: Int {
-        return self.storedCustomRequest.count
+        return storedCustomRequest.count
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        NotificationCenter.default.addObserver(self, selector: #selector(saveListData(_:)), name: .UIApplicationWillResignActive, object: UIApplication.shared)
-        self.tableView.tableFooterView = UIView(frame: .zero)
-        if #available(iOS 9.0, *), self.traitCollection.forceTouchCapability == .available {
-            registerForPreviewing(with: self, sourceView: self.tableView)
-        }
-        if #available(iOS 11.0, *) {
-            self.tableView.dropDelegate = self
-        }
+        NotificationCenter.default.addObserver(self, selector: #selector(saveListData(_:)), name: UIApplication.willResignActiveNotification, object: UIApplication.shared)
+        tableView.tableFooterView = UIView(frame: .zero)
+        tableView.dropDelegate = self
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        viewAppearedAction?()
+        viewAppearedAction = nil
     }
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        self.tableView.isEditing = false
-        self.saveListData(nil)
+        tableView.isEditing = false
+        saveListData(nil)
     }
     // MARK: - Helpers
-    typealias BackgroundSigningStatus = (model: String, version: String, status: SigningStatus)
+    struct BackgroundSigningStatus {
+        var model: String
+        var version: String
+        var status: SigningStatus
+    }
     typealias TSSRequestRange = (from: Int, to: Int) // exclusive
     func checkSigningStatusInBackground(range: TSSRequestRange, completionHandler: @escaping ([BackgroundSigningStatus]) -> Void) {
-        let refreshRange = self.storedCustomRequest[range.from..<range.to]
+        let refreshRange = storedCustomRequest[range.from..<range.to]
 
         var resultArray: [BackgroundSigningStatus] = []
-        let serialQueue = DispatchQueue(label: "", qos: .userInitiated)
+        let serialQueue = DispatchQueue(label: "BFSerialQ", qos: .userInitiated)
         let group = DispatchGroup()
         for customRequest in refreshRange {
             DispatchQueue.global(qos: .userInitiated).async(group: group) {
                 let request = TSSRequest(firmwareURL: customRequest.buildManifestURL, deviceBoardConfiguration: customRequest.deviceBoard)
                 var error: NSError?
                 let timeout: TimeInterval = 15
-                // Each request must finish within 15 seconds to avoid being killed by watchdog.
-                serialQueue.asyncAfter(deadline: .now() + timeout, execute: {
-                    request.cancelGlobalConnection()
-                })
+                // Each request must finish within 15 seconds (hard deadline) to avoid being killed by watchdog.
+                serialQueue.asyncAfter(deadline: .now() + timeout) {
+                    print("Timeout: cancelling request")
+                    request.cancel()
+                }
                 let statusCode = request.checkSigningStatusWithError(&error)
-                let newResult = FetchedTSSResult(currentStatus: FetchedTSSResult.firmwareSigningStatusConverter(statusCode), lastRefreshedDate: Date(), localizedErrorMessage: error?.localizedDescription)
+                let newResult = FetchedTSSResult(currentStatus: SigningStatus(firmwareSigningStatus: statusCode), lastRefreshedDate: Date(), localizedErrorMessage: error?.localizedDescription)
                 customRequest.status = newResult
                 DispatchQueue.main.sync {
-                    resultArray.append((model: request.deviceModel!, version: request.version!, status: newResult.currentStatus))
+                    resultArray.append(BackgroundSigningStatus(model: request.deviceModel!, version: request.firmwareVersion!.version, status: newResult.currentStatus))
                 }
             }
         }
-        group.notify(queue: DispatchQueue.main) {
+        group.notify(queue: .main) {
             completionHandler(resultArray)
         }
     }
@@ -189,15 +185,15 @@ class CustomFirmwareTableViewController: UITableViewController {
     private func checkAllSigningStatus(completionHandler: ((Int, SigningStatus) -> Bool)? = nil) {
         // only refresh status when current status is error or 30 sec after last refreshed.
         let sessionExpirationIntervalInSeconds: TimeInterval = 30
-        for (index, customRequest) in self.storedCustomRequest.enumerated() {
-            guard customRequest.status.currentStatus == .Error || (customRequest.status.lastRefreshedDate?.timeIntervalSinceNow ?? sessionExpirationIntervalInSeconds).magnitude >= sessionExpirationIntervalInSeconds else {continue}
+        for (index, customRequest) in storedCustomRequest.enumerated() {
+            guard customRequest.status.currentStatus == .error || (customRequest.status.lastRefreshedDate?.timeIntervalSinceNow ?? sessionExpirationIntervalInSeconds).magnitude >= sessionExpirationIntervalInSeconds else {continue}
             let request = TSSRequest(firmwareURL: customRequest.buildManifestURL, deviceBoardConfiguration: customRequest.deviceBoard)
             request.delegate = self
-            self.currentRequest = request
+            currentRequest = request
             var error: NSError?
             let status = request.checkSigningStatusWithError(&error)
-            guard self.loadingAlertView != nil else {return}
-            customRequest.status = FetchedTSSResult(currentStatus: FetchedTSSResult.firmwareSigningStatusConverter(status), lastRefreshedDate: Date(), localizedErrorMessage: error?.localizedDescription)
+            guard loadingAlertView != nil else {return}
+            customRequest.status = FetchedTSSResult(currentStatus: SigningStatus(firmwareSigningStatus: status), lastRefreshedDate: Date(), localizedErrorMessage: error?.localizedDescription)
             if !(completionHandler?(index, customRequest.status.currentStatus) ?? true) {
                 break
             }
@@ -213,24 +209,23 @@ class CustomFirmwareTableViewController: UITableViewController {
         guard validateURLInString(urlInString) else {
             let errorView = UIAlertController(title: LocalizedString.errorTitle, message: "Invalid URL. ", preferredStyle: .alert)
             errorView.addAction(UIAlertAction(title: "OK", style: .cancel))
-            self.present(errorView, animated: true)
+            present(errorView, animated: true)
             return
         }
         let request = TSSRequest(firmwareURL: urlInString)
         request.delegate = self
         let loadingView = UIAlertController(title: "Checking...", message: "", preferredStyle: .alert)
         loadingView.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { _ in
-            request.cancelGlobalConnection()
+            request.cancel()
         }))
 
-        self.loadingAlertView = loadingView
-        self.present(loadingView, animated: true) {
-            DispatchQueue.global().async {
-                let URLError = request.firmwareURLError
+        loadingAlertView = loadingView
+        present(loadingView, animated: true) {
+            request.validateURL { (result, error) in
                 DispatchQueue.main.async {
-                    loadingView.dismiss(animated: false, completion: {
-                        if let URLError = URLError as NSError? {
-                            let errorView = UIAlertController(title: LocalizedString.errorTitle, message: "An error has occurred. Code: \(URLError.code). \(URLError.localizedDescription)", preferredStyle: .alert)
+                    loadingView.dismiss(animated: false) {
+                        if let error = error as NSError? {
+                            let errorView = UIAlertController(title: LocalizedString.errorTitle, message: "An error has occurred. Code: \(error.code). \(error.localizedDescription)", preferredStyle: .alert)
                             errorView.addAction(UIAlertAction(title: "OK", style: .default))
                             self.present(errorView, animated: true)
                             return
@@ -241,60 +236,64 @@ class CustomFirmwareTableViewController: UITableViewController {
                             self.present(alertView, animated: true)
                             return
                         }
-                        func createNewRequest(_ device: String) {
-                            request.selectDevice(inSupportedList: device)
-                            self.storedCustomRequest.append(CustomRequest(deviceBoard: request.deviceBoardConfig!, deviceModel: request.deviceModel!, version: request.version!, buildID: request.buildID!, buildManifestURL: urlInString, isOTA: request.isOTAVersion))
+                        func createNewRequestAtIndex(_ index: Int) {
+                            request.selectDeviceInSupportedList(at: UInt(index))
+                            let firmwareVersion = request.firmwareVersion!
+                            self.storedCustomRequest.append(CustomRequest(deviceBoard: request.deviceBoardConfig!, deviceModel: request.deviceModel!, version: firmwareVersion.version, buildID: firmwareVersion.buildID, buildManifestURL: urlInString, isOTA: firmwareVersion.isOTAFirmware))
                             self.modifiedList = true
                             self.tableView.reloadData()
                         }
+
                         // let user pick one device model if there are more than one available.
                         if supportedDevices.count == 1 {
-                            createNewRequest(supportedDevices[0])
+                            createNewRequestAtIndex(0)
                         }
                         else {
                             let selectionAlertView = UIAlertController(title: "Select a device", message: nil, preferredStyle: .alert)
-                            supportedDevices.forEach({ (deviceModelString) in
-                                let action = UIAlertAction(title: deviceModelString, style: .default, handler: { (action) in
-                                    createNewRequest(action.title!)
-                                })
+
+                            for (index, string) in supportedDevices.enumerated() {
+                                let action = UIAlertAction(title: string, style: .default) { _ in
+                                    createNewRequestAtIndex(index)
+                                }
                                 selectionAlertView.addAction(action)
-                                if #available(iOS 9.0, *), deviceModelString.contains(GlobalConstants.localProductType) && (!deviceModelString.contains("(") || deviceModelString.contains(GlobalConstants.localDeviceBoard)) {
+                                let profile = PreferencesManager.shared.preferredProfile
+                                if string.contains(profile.deviceModel) && (!string.contains("(") || string.contains(profile.deviceBoard)) {
                                     selectionAlertView.preferredAction = action
                                 }
-                            })
+                            }
                             selectionAlertView.addAction(UIAlertAction(title: "Cancel", style: .cancel))
                             self.present(selectionAlertView, animated: true)
                         }
-                    })
+                    }
                 }
             }
         }
     }
     private func checkSigningStatus(At index: Int, presentingViewController: UIViewController? = nil, completionHandler: (() -> Void)? = nil) {
-        let customRequest = self.storedCustomRequest[index]
+        let customRequest = storedCustomRequest[index]
         let refreshPrompt = UIAlertController(title: "Checking signing status for \(customRequest.version + "- \(customRequest.buildID)")...", message: "", preferredStyle: .alert)
-        self.loadingAlertView = refreshPrompt
+        loadingAlertView = refreshPrompt
         let request = TSSRequest(firmwareURL: customRequest.buildManifestURL, deviceBoardConfiguration: customRequest.deviceBoard)
         request.delegate = self
-        refreshPrompt.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (_) in
-            request.cancelGlobalConnection()
-        }))
+        refreshPrompt.addAction(UIAlertAction(title: "Cancel", style: .cancel) { (_) in
+            request.cancel()
+        })
         (presentingViewController ?? self).present(refreshPrompt, animated: true) {
-            var hapticGenerator: AnyObject?
-            if #available(iOS 10.0, *) {
-                let _hapticGenerator = UINotificationFeedbackGenerator()
-                _hapticGenerator.prepare()
-                hapticGenerator = _hapticGenerator
-            }
+            let hapticGenerator = UINotificationFeedbackGenerator()
+            hapticGenerator.prepare()
             request.checkSigningStatus { (status, error) in
                 guard self.loadingAlertView != nil else {return}
-                customRequest.status = FetchedTSSResult(currentStatus: FetchedTSSResult.firmwareSigningStatusConverter(status), lastRefreshedDate: Date(), localizedErrorMessage: error?.localizedDescription)
+                customRequest.status = FetchedTSSResult(currentStatus: SigningStatus(firmwareSigningStatus: status), lastRefreshedDate: Date(), localizedErrorMessage: error?.localizedDescription)
                 DispatchQueue.main.async {
-                    if #available(iOS 10.0, *) {
-                        (hapticGenerator as? UINotificationFeedbackGenerator)?.notificationOccurred(error == nil ? .success : .error)
-                        hapticGenerator = nil
+                    hapticGenerator.notificationOccurred(error == nil ? .success : .error)
+                    if self.view.window == nil {
+                        self.viewAppearedAction = {
+                            self.tableView.reloadData()
+                        }
                     }
-                    self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+                    else {
+                        self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
+                    }
                     self.loadingAlertView?.dismiss(animated: true, completion: completionHandler)
                 }
             }
@@ -305,32 +304,27 @@ class CustomFirmwareTableViewController: UITableViewController {
 
     @IBAction private func checkAllSigningStatus(_ sender: UIRefreshControl) {
         let refreshPrompt = UIAlertController(title: "Checking signing status for all firmwares...", message: "", preferredStyle: .alert)
-        self.loadingAlertView = refreshPrompt
+        loadingAlertView = refreshPrompt
         refreshPrompt.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: { (_) in
-            self.currentRequest?.cancelGlobalConnection()
+            self.currentRequest?.cancel()
             self.tableView.reloadData()
             sender.endRefreshing()
         }))
-        self.present(refreshPrompt, animated: true) {
-            var feedbackGenerator: AnyObject?
-            if #available(iOS 10.0, *) {
-                feedbackGenerator = UINotificationFeedbackGenerator()
-            }
+        present(refreshPrompt, animated: true) {
+            let feedbackGenerator = UINotificationFeedbackGenerator()
+            feedbackGenerator.prepare()
             DispatchQueue.global().async {
                 self.checkAllSigningStatus() { (index, status) in
                     var refreshing = false
                     DispatchQueue.main.sync {
-                        if #available(iOS 10.0, *), let feedbackGenerator = feedbackGenerator as? UINotificationFeedbackGenerator {
-                            feedbackGenerator.notificationOccurred(status == .Error ? .error : .success)
-                            feedbackGenerator.prepare()
-                        }
+                        feedbackGenerator.notificationOccurred(status == .error ? .error : .success)
+                        feedbackGenerator.prepare()
                         refreshing = sender.isRefreshing
                         self.tableView.reloadRows(at: [IndexPath(row: index, section: 0)], with: .automatic)
                     }
                     return refreshing
                 }
                 DispatchQueue.main.async {
-                    feedbackGenerator = nil
                     self.tableView.reloadData()
                     sender.endRefreshing()
                     self.loadingAlertView?.dismiss(animated: true)
@@ -344,6 +338,9 @@ class CustomFirmwareTableViewController: UITableViewController {
         actionSheet.popoverPresentationController?.barButtonItem = sender
         actionSheet.addAction(UIAlertAction(title: "Select from table", style: .default, handler: { (_) in
             self.performSegue(withIdentifier: "ToSelectFirmware", sender: self)
+        }))
+        actionSheet.addAction(UIAlertAction(title: "Select from web page", style: .default, handler: { (_) in
+            self.performSegue(withIdentifier: "ToWebpage", sender: self)
         }))
         actionSheet.addAction(UIAlertAction(title: "Enter URL manually", style: .default, handler: { (_) in
             let alertView = UIAlertController(title: "", message: "Enter a URL for iOS Firmware/OTA: ", preferredStyle: .alert)
@@ -359,38 +356,41 @@ class CustomFirmwareTableViewController: UITableViewController {
             self.present(alertView, animated: true)
         }))
         actionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel))
-        self.present(actionSheet, animated: true)
+        present(actionSheet, animated: true)
     }
     @discardableResult
     @objc private func saveListData(_ sender: Any?) -> Bool {
         // potentially data unsafe but efficient
-        if self.modifiedList {
-            self.modifiedList = false
-            return (self.storedCustomRequest.map{$0.archivableDictionary} as NSArray).write(toFile: GlobalConstants.customRequestDataFilePath, atomically: true)
+        if modifiedList {
+            modifiedList = false
+            return (storedCustomRequest.map{$0.archivableDictionary} as NSArray).write(toFile: GlobalConstants.customRequestDataFilePath, atomically: true)
         }
         return false
     }
     @IBAction private func editButtonPressed(_ sender: UIBarButtonItem?) {
-        if self.tableView.isEditing {
-            self.tableView.setEditing(false, animated: true)
-            self.editBarButton.title = "Edit"
+        if tableView.isEditing {
+            tableView.setEditing(false, animated: true)
+            editBarButton.title = "Edit"
         }
         else {
-            self.tableView.setEditing(true, animated: true)
-            self.editBarButton.title = "Done"
+            tableView.setEditing(true, animated: true)
+            editBarButton.title = "Done"
         }
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let cfivc = segue.destination as? CustomFirmwareInfoViewController, let sender = sender as? UITableViewCell {
-            let indexPath = self.tableView.indexPath(for: sender)!
-            cfivc.firmwareInfo = self.storedCustomRequest[indexPath.row]
+        if let cfivc = segue.destination as? CustomFirmwareInfoTableViewController, let sender = sender as? UITableViewCell {
+            let indexPath = tableView.indexPath(for: sender)!
+            cfivc.firmwareInfo = storedCustomRequest[indexPath.row]
             cfivc.delegate = self
             cfivc.indexInPreviousTableView = indexPath
         }
         else if let sftvc = (segue.destination as? UINavigationController)?.viewControllers.first as? SelectFirmwareTableViewController {
             sftvc.actionAfterAppeared = sftvc.loadListAllDevices
-            sftvc.loadFirmwareActionBlock = self.loadFirmwareURLString
+            sftvc.loadFirmwareActionBlock = loadFirmwareURLString
+        }
+        else if let wpvc = (segue.destination as? UINavigationController)?.viewControllers.first as? WebpageViewController {
+            wpvc.loadFirmwareActionBlock = loadFirmwareURLString
         }
     }
     deinit {
@@ -399,44 +399,48 @@ class CustomFirmwareTableViewController: UITableViewController {
 }
 extension CustomFirmwareTableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.storedCustomRequest.count
+        return storedCustomRequest.count
     }
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "custom", for: indexPath)
-        let info = self.storedCustomRequest[indexPath.row]
+        let info = storedCustomRequest[indexPath.row]
 
         cell.textLabel?.text = info.description
         switch (info.status.currentStatus) {
-            case .Signed:
-                cell.backgroundColor = UIColor.green
+            case .signed:
+                cell.imageView?.image = UIImage(named: "signed")
+                cell.imageView?.tintColor = .systemGreen
                 cell.detailTextLabel?.text = "This firmware is being signed."
-            case .Not_Signed:
-                cell.backgroundColor = UIColor.red
+            case .notSigned:
+                cell.imageView?.image = UIImage(named: "unsigned")
+                cell.imageView?.tintColor = .systemRed
                 cell.detailTextLabel?.text = "This firmware is not being signed."
-            case .Unknown:
-                cell.backgroundColor = UIColor.white
+            case .unknown:
+                cell.imageView?.image = nil
+                cell.imageView?.tintColor = nil
                 cell.detailTextLabel?.text = "The signing status of this firmware is unknown."
-            case .Error:
-                cell.backgroundColor = UIColor.gray
+            case .error:
+                cell.imageView?.image = UIImage(named: "error")
+                cell.imageView?.tintColor = .systemYellow
                 cell.detailTextLabel?.text = "An error has occurred when querying signing status."
         }
         return cell
     }
 
     // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            self.modifiedList = true
-            self.storedCustomRequest.remove(at: indexPath.row)
+            modifiedList = true
+            storedCustomRequest.remove(at: indexPath.row)
             tableView.deleteRows(at: [indexPath], with: .fade)
         }
     }
 
     // Override to support rearranging the table view.
     override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-        self.modifiedList = true
-        self.storedCustomRequest.insert(self.storedCustomRequest.remove(at: fromIndexPath.row), at: to.row)
+        modifiedList = true
+        storedCustomRequest.insert(storedCustomRequest.remove(at: fromIndexPath.row), at: to.row)
     }
 
     override func tableView(_ tableView: UITableView, editActionsForRowAt indexPath: IndexPath) -> [UITableViewRowAction]? {
@@ -452,7 +456,7 @@ extension CustomFirmwareTableViewController {
     }
 }
 extension CustomFirmwareTableViewController : TSSRequestDelegate {
-    func request(_ request: TSSRequest, sendMessageOutput output: String) {
+    func request(_ request: TSSRequest, verboseOutput output: String) {
         DispatchQueue.main.async {
             if output.last == "\n" {
                 self.loadingAlertView?.message = String(output.dropLast())
@@ -460,7 +464,6 @@ extension CustomFirmwareTableViewController : TSSRequestDelegate {
         }
     }
 }
-@available(iOS 11.0, *)
 extension CustomFirmwareTableViewController : UITableViewDropDelegate {
     func tableView(_ tableView: UITableView, performDropWith coordinator: UITableViewDropCoordinator) {
         let _ = coordinator.session.loadObjects(ofClass: String.self) { (items) in
@@ -482,39 +485,37 @@ extension CustomFirmwareTableViewController : UITableViewDropDelegate {
         return UITableViewDropProposal(operation: .copy)
     }
 }
-@available(iOS 9.0, *)
-extension CustomFirmwareTableViewController : UIViewControllerPreviewingDelegate {
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, viewControllerForLocation location: CGPoint) -> UIViewController? {
-        guard let indexPath = self.tableView.indexPathForRow(at: location) else {return nil}
-        let firmwareInfoVC = UIStoryboard(name: "Main", bundle: nil).instantiateViewController(withIdentifier: "Custom Firmware Info") as! CustomFirmwareInfoViewController
-        previewingContext.sourceRect = self.tableView.rectForRow(at: indexPath)
-        firmwareInfoVC.firmwareInfo = self.storedCustomRequest[indexPath.row]
-        firmwareInfoVC.delegate = self
-        firmwareInfoVC.indexInPreviousTableView = indexPath
-        return firmwareInfoVC
-    }
-
-    func previewingContext(_ previewingContext: UIViewControllerPreviewing, commit viewControllerToCommit: UIViewController) {
-        self.show(viewControllerToCommit, sender: nil)
-    }
-}
 extension CustomFirmwareTableViewController : CustomFirmwareInfoViewControllerDelegate {
     func deleteItem(at indexPath: IndexPath) {
-        self.tableView(self.tableView, commit: .delete, forRowAt: indexPath)
+        tableView(tableView, commit: .delete, forRowAt: indexPath)
     }
-    func refreshItem(InViewController cfivc: CustomFirmwareInfoViewController?, at indexPath: IndexPath, completionHandler: (() -> Void)? = nil) {
-        self.checkSigningStatus(At: indexPath.row, presentingViewController: cfivc) {
+    func refreshItem(InViewController cfivc: CustomFirmwareInfoTableViewController?, at indexPath: IndexPath, completionHandler: (() -> Void)? = nil) {
+        checkSigningStatus(At: indexPath.row, presentingViewController: cfivc) {
             cfivc?.firmwareInfo = self.storedCustomRequest[indexPath.row]
             completionHandler?()
         }
     }
     
     func finishedLabelSetting(text: String, at indexPath: IndexPath) {
-        let customRequest = self.storedCustomRequest[indexPath.row]
+        let customRequest = storedCustomRequest[indexPath.row]
         let oldLabel = customRequest.label ?? ""
-        self.modifiedList = oldLabel != text
-        guard self.modifiedList else {return}
+        modifiedList = oldLabel != text
+        guard modifiedList else {return}
         customRequest.label = text.isEmpty ? nil : text
-        self.tableView.reloadRows(at: [indexPath], with: UITableViewRowAnimation.none)
+        tableView.reloadRows(at: [indexPath], with: UITableView.RowAnimation.none)
+    }
+}
+extension CustomFirmwareTableViewController.SigningStatus {
+    init(firmwareSigningStatus: TSSFirmwareSigningStatus) {
+        switch firmwareSigningStatus {
+        case .notSigned:
+            self = .notSigned
+        case .signed:
+            self = .signed
+        case .error:
+            self = .error
+        default:
+            self = .unknown
+        }
     }
 }

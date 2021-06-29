@@ -12,45 +12,45 @@ class ScrollableLabelTableViewCell: UITableViewCell {
     @IBOutlet private(set) weak var scrollView: UIScrollView!
     private lazy var contentLabel: UILabel = {
         let label = UILabel()
-        label.backgroundColor = .clear
         label.textAlignment = .right
-        self.scrollView.addSubview(label)
-        self.scrollView.layoutIfNeeded()
+        scrollView.addSubview(label)
         return label
     }()
     var leftSideText: String? {
         get {
-            return self.leftSideLabel.text
+            return leftSideLabel.text
         }
         set {
-            self.leftSideLabel.text = newValue
+            leftSideLabel.text = newValue
         }
     }
     var rightSideScrollableText: String? {
         get {
-            return self.contentLabel.text
+            return contentLabel.text
         }
         set {
-            self.contentLabel.text = newValue
-            self.setNeedsLayout()
+            contentLabel.text = newValue
+            contentLabel.sizeToFit()
         }
     }
     override func layoutSubviews() {
         super.layoutSubviews()
-        self.contentLabel.sizeToFit()
-        let size = self.contentLabel.bounds.size
-        let adjustSize = CGSize(width: ceil(size.width) + 5, height: ceil(size.height))
-        self.scrollView.layoutIfNeeded()
-        self.contentLabel.frame.size = adjustSize
-        self.contentLabel.frame.origin.y = (self.scrollView.bounds.size.height - adjustSize.height)/2
-        if self.scrollView.bounds.contains(self.contentLabel.bounds) {
-            self.contentLabel.frame.origin.x = self.scrollView.frame.size.width - adjustSize.width
-            self.contentLabel.autoresizingMask = [.flexibleLeftMargin, .flexibleRightMargin]
+        // force scrollView to reset frame
+        scrollView.setNeedsLayout()
+        scrollView.layoutIfNeeded()
+
+        // keep the height same as scrollView
+        contentLabel.bounds.size.height = scrollView.bounds.size.height
+        let widthDiff = scrollView.bounds.size.width - contentLabel.bounds.size.width
+        if widthDiff > 0 {
+            contentLabel.autoresizingMask = [.flexibleLeftMargin, .flexibleRightMargin]
+            contentLabel.frame.origin.x = widthDiff
         }
         else {
-            self.contentLabel.frame.origin.x = 0
-            self.contentLabel.autoresizingMask = []
+            contentLabel.autoresizingMask = []
+            contentLabel.frame.origin.x = 0
         }
-        self.scrollView.contentSize = adjustSize
+        contentLabel.frame.origin.y = 0
+        scrollView.contentSize = contentLabel.bounds.size
     }
 }

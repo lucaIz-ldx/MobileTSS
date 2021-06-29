@@ -158,7 +158,7 @@ static CURLcode curlEasyPerformRetry(CURL *handler, int retry, TSSCustomUserData
     for (int a = 0; a < retry; a++) {
         code = curl_easy_perform(handler);
         if (code == CURLE_ABORTED_BY_CALLBACK) {
-            log_console("[CURL] Abort by User.\n");
+            log_console("[CURL] Abort by caller.\n");
             break;
         }
         if (code == CURLE_OK) {
@@ -199,7 +199,7 @@ static fragmentzip_t *fragmentzip_open_extended(const char *url, CURL *mcurl, TS
     assure(info->url = strdup(url));
     assure(info->mcurl = mcurl);
 
-    if (userData && userData->timeout != 0) {
+    if (userData->timeout != 0) {
         const long connection_timeout = userData->timeout;
         const long total_transfer_timeout = connection_timeout + 10;  // buildmanifest should not take more than 10 + connection_timeout sec. to get.
 
@@ -382,12 +382,13 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
         {
             z_stream strm = {0};
             retassure(inflateInit2(&strm, -MAX_WBITS) >= 0, Other_Error, "Failed to init zlib.");
-            
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wshorten-64-to-32"
             strm.avail_in = compressedSize;
             strm.next_in = (Bytef *)compressed.buf;
             strm.avail_out = uncompressedSize;
             strm.next_out = (Bytef *)uncompressed;
-            
+#pragma clang diagnostic pop
             retassure(inflate(&strm, Z_FINISH) > 0, Other_Error, "Failed to inflate data.");
             retassure(strm.msg == NULL, Other_Error, "An error has occurred when deflate data: %s.", strm.msg);
             inflateEnd(&strm);
@@ -396,8 +397,7 @@ int fragmentzip_download_file(fragmentzip_t *info, const char *remotepath, TSSDa
         default:
             retassure(0, Other_Error, "Unknown compression method: %d", lfile->compression);
     }
-    
-    retassure(crc32(0, (Bytef *)uncompressed, uncompressedSize) == rfile->crc32, Other_Error, "crc32 check failed.");
+    retassure(crc32_z(0, (Bytef *)uncompressed, uncompressedSize) == rfile->crc32, Other_Error, "crc32 check failed.");
     
     //file unpacked, now save it
     buffer->buffer = uncompressed;

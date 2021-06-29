@@ -10,6 +10,8 @@ import UIKit
 class SelectFirmwareTableViewController: UITableViewController {
     static let storyBoardIdentifier = "SelectFirmwareTVC"
 
+    var preparedDeviceList: [String]?
+
     var actionAfterAppeared: (() -> Void)?
     var loadFirmwareActionBlock: ((String) -> Void)!
 
@@ -38,11 +40,12 @@ class SelectFirmwareTableViewController: UITableViewController {
         init(title: String, subtitle: String, versionDelimiter: Character, info: Any?) {
             self.title = title
             self.subtitle = subtitle
-            let numbers = title[title.index { ("0"..."9").contains($0)}!...].split(separator: versionDelimiter)
-            self.versionNums = numbers.flatMap {Int($0)}
+            let numbers = title[title.firstIndex { ("0"..."9").contains($0)}!...].split(separator: versionDelimiter)
+            versionNums = numbers.compactMap {Int($0)}
             self.info = info
         }
     }
+    private weak var loadingView: UIView?
     private weak var loadingTask: URLSessionTask?
 
     private var actionBlockAfterTapCell: ((IndexPath) -> Void)?
@@ -52,11 +55,11 @@ class SelectFirmwareTableViewController: UITableViewController {
     func loadListAllDevices() {
         var request = URLRequest(url: URL(string: "https://api.ipsw.me/v4/devices")!)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        loadingView = applyLoadingView()
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 self.navigationItem.title = "Devices"
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
+                self.removeLoadingView(self.loadingView)
             }
             if let error = error as NSError? {
                 guard error.code != NSURLErrorCancelled else {return}
@@ -90,7 +93,7 @@ class SelectFirmwareTableViewController: UITableViewController {
                     }
                 }
                 var groupedDevices: [String: [CellSelectItem]] = [:]
-                loadedDictionary.flatMap { device -> (DeviceType, CellSelectItem)? in
+                loadedDictionary.compactMap { device -> (DeviceType, CellSelectItem)? in
                     guard let id = device[JsonKeys.identifier_Key] as? String, let type = DeviceType(rawValue: id), let name = device[JsonKeys.name_Key] as? String else {
                         return nil
                     }
@@ -129,18 +132,18 @@ class SelectFirmwareTableViewController: UITableViewController {
                 }
             }
         }
-        self.loadingTask = task
+        loadingTask = task
         task.resume()
     }
     private func loadListOfAllVersion(for deviceIdentifier: String) {
         var request = URLRequest(url: URL(string: "https://api.ipsw.me/v4/device/\(deviceIdentifier)")!)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        loadingView = applyLoadingView()
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 self.navigationItem.title = "Firmwares"
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                if self.firstViewController == false {
+                self.removeLoadingView(self.loadingView)
+                if self.isFirstViewController == false {
                     self.navigationItem.rightBarButtonItem = nil
                 }
             }
@@ -157,7 +160,7 @@ class SelectFirmwareTableViewController: UITableViewController {
             }
             if let data = data, let loadedDictionary = (((try? JSONSerialization.jsonObject(with: data)) as? [String : Any])?[JsonKeys.firmwares_Key]) as? [[String : Any]] {
                 self.sectionTitles = nil
-                self.itemList = [loadedDictionary.flatMap { (firmwareDict) -> CellSelectItem? in
+                self.itemList = [loadedDictionary.compactMap { (firmwareDict) -> CellSelectItem? in
                     guard let version = firmwareDict[JsonKeys.version_Key] as? String,
                         let buildID = firmwareDict[JsonKeys.buildid_Key] as? String,
                         let url = firmwareDict[JsonKeys.url_Key] as? String else { return nil }
@@ -183,8 +186,12 @@ class SelectFirmwareTableViewController: UITableViewController {
                 }
             }
         }
-        self.loadingTask = task
+        loadingTask = task
         task.resume()
+    }
+    // beta
+    private func loadListOfAllMajorVersion(for deviceIdentifier: String) {
+
     }
     private func loadListOfAllBetaVersion(for deviceIdentifier: String) {
         // TODO:
@@ -192,12 +199,12 @@ class SelectFirmwareTableViewController: UITableViewController {
     private func loadListOfAllOTAVersion(for deviceIdentifier: String) {
         var request = URLRequest(url: URL(string: "https://api.ipsw.me/v4/device/\(deviceIdentifier)")!)
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        UIApplication.shared.isNetworkActivityIndicatorVisible = true
+        loadingView = applyLoadingView()
         let task = URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async {
                 self.navigationItem.title = "OTAs"
-                UIApplication.shared.isNetworkActivityIndicatorVisible = false
-                if self.firstViewController == false {
+                self.removeLoadingView(self.loadingView)
+                if self.isFirstViewController == false {
                     self.navigationItem.rightBarButtonItem = nil
                 }
             }
@@ -214,7 +221,7 @@ class SelectFirmwareTableViewController: UITableViewController {
             }
             if let data = data, let loadedDictionary = (((try? JSONSerialization.jsonObject(with: data)) as? [String : Any])?[JsonKeys.firmwares_Key]) as? [[String : Any]] {
                 self.sectionTitles = nil
-                self.itemList = [loadedDictionary.flatMap { (firmwareDict) -> CellSelectItem? in
+                self.itemList = [loadedDictionary.compactMap { (firmwareDict) -> CellSelectItem? in
                     guard let version = firmwareDict[JsonKeys.version_Key] as? String,
                         let buildID = firmwareDict[JsonKeys.buildid_Key] as? String,
                         let url = firmwareDict[JsonKeys.url_Key] as? String else { return nil }
@@ -240,24 +247,24 @@ class SelectFirmwareTableViewController: UITableViewController {
                 }
             }
         }
-        self.loadingTask = task
+        loadingTask = task
         task.resume()
     }
     @IBAction private func cancelButtonTapped(_ sender: Any?) {
         loadingTask?.cancel()
-        if firstViewController {
-            self.dismiss(animated: true)
+        if isFirstViewController {
+            dismiss(animated: true)
         }
         else {
-            self.navigationController?.popViewController(animated: true)
+            navigationController?.popViewController(animated: true)
         }
     }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        if firstViewController == false {
-            self.navigationItem.rightBarButtonItem = self.navigationItem.leftBarButtonItem
-            self.navigationItem.leftBarButtonItem = nil
+        if isFirstViewController == false {
+            navigationItem.rightBarButtonItem = navigationItem.leftBarButtonItem
+            navigationItem.leftBarButtonItem = nil
         }
     }
     override func viewDidAppear(_ animated: Bool) {
@@ -284,8 +291,8 @@ class SelectFirmwareTableViewController: UITableViewController {
 
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "item", for: indexPath)
-        cell.textLabel?.text = self.itemList[indexPath.section][indexPath.row].title
-        cell.detailTextLabel?.text = self.itemList[indexPath.section][indexPath.row].subtitle
+        cell.textLabel?.text = itemList[indexPath.section][indexPath.row].title
+        cell.detailTextLabel?.text = itemList[indexPath.section][indexPath.row].subtitle
         return cell
     }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -293,8 +300,8 @@ class SelectFirmwareTableViewController: UITableViewController {
         tableView.deselectRow(at: indexPath, animated: true)
     }
 }
-extension UIViewController {
-    var firstViewController: Bool {
-        return self.navigationController?.viewControllers.first === self
+fileprivate extension UIViewController {
+    var isFirstViewController: Bool {
+        return navigationController?.viewControllers.first === self
     }
 }

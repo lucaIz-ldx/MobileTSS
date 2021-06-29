@@ -9,15 +9,10 @@
 #import "LocalDeviceConstants.h"
 #import <plist/plist.h>
 
-static NSString *getDeviceBoardForPlist(plist_t plist) {
-    char *value = NULL;
-    plist_get_string_val(plist_access_path(plist, 2, "Info", "DeviceClass"), &value);
-    NSCAssert(value != NULL, @"Device class is null.");
-    NSString *str = [NSString stringWithCString:value encoding:NSASCIIStringEncoding];
-    free(value);
-    return str;
-}
-static plist_t getDeviceBoardConfigMatchingBuildIdentityFromIdentities(plist_t buildIdentities, const char *deviceBoardConfiguration, bool updateInstall) {
+//static const char *TSSBuildIdentityCachingUpdateKey = "Update";
+//static const char *TSSBuildIdentityCachingEraseKey = "Erase";
+
+static void getDeviceBoardConfigMatchingBuildIdentityFromIdentities(plist_t buildIdentities, const char *deviceBoardConfiguration, plist_t *update, plist_t *erase) {
     // It is possible that incompatible ota update files includes the current model in its supporteddevicetypes.
     const int arraySize = plist_array_get_size(buildIdentities);
     for (int a = 0; a < arraySize; a++) {
@@ -29,80 +24,114 @@ static plist_t getDeviceBoardConfigMatchingBuildIdentityFromIdentities(plist_t b
             free(str);
             str = NULL;
             plist_get_string_val(plist_dict_get_item(info, "RestoreBehavior"), &str);
-            if (str && strcmp(str, updateInstall ? "Update" : "Erase") == 0) {
-                free(str);
-                return identity;
+            if (str) {
+                if (!*update && strcmp(str, "Update") == 0) {
+                    *update = identity;
+                }
+                else if (!*erase && strcmp(str, "Erase") == 0) {
+                    *erase = identity;
+                }
+                else NSLog(@"[WARNING] Unknown restore behavior: %s.\n", str);
             }
         }
         free(str);
     }
-    return NULL;
 }
 @interface TSSBuildIdentity ()
 @property (readwrite, nonatomic, nullable) void *updateInstall;
 @property (readwrite, nonatomic, nullable) void *eraseInstall;
+@property (readwrite, copy, nonatomic) NSString *deviceBoardConfiguration;
 
 @end
 @implementation TSSBuildIdentity
-
-+ (nullable NSArray<TSSBuildIdentity *> *)buildIdentitiesInBuildManifest:(nonnull NSDictionary<NSString *,id> *)buildManifest forDeviceModel:(nonnull NSString *)deviceModel {
-    NSArray *objcBuildIdentities = buildManifest[@"BuildIdentities"];
-    if (!objcBuildIdentities) {
-        return nil;
-    }
-    NSString *str = [[NSString alloc] initWithData:[NSPropertyListSerialization dataWithPropertyList:objcBuildIdentities format:NSPropertyListXMLFormat_v1_0 options:0 error:nil] encoding:NSASCIIStringEncoding];
-    plist_t buildIdentities = NULL;
-    plist_from_xml([str cStringUsingEncoding:NSASCIIStringEncoding], (uint32_t)str.length, &buildIdentities);
-    if (!buildIdentities) {
-        return nil;
++ (NSArray<TSSBuildIdentity *> *)buildIdentitiesInBuildManifestData:(NSData *)buildManifestData forDeviceModel:(NSString *)deviceModel {
+    plist_t buildManifest = NULL;
+    plist_from_xml(buildManifestData.bytes, (uint32_t)buildManifestData.length, &buildManifest);
+    plist_t buildIdentities = plist_dict_get_item(buildManifest, "BuildIdentities");
+    if (!PLIST_IS_ARRAY(buildIdentities)) {
+        plist_free(buildManifest);
+        return NULL;
     }
     DeviceInfo_ptr board[10] = {0};
     findAllDeviceInfosForSpecifiedModel([deviceModel cStringUsingEncoding:NSASCIIStringEncoding], board, sizeof(board)/sizeof(DeviceInfo_ptr));
     NSMutableArray<TSSBuildIdentity *> *array = [NSMutableArray array];
     for (int index = 0; index < sizeof(board)/sizeof(board[0]); index++) {
         if (board[index]) {
-            plist_t update = getDeviceBoardConfigMatchingBuildIdentityFromIdentities(buildIdentities, board[index]->deviceBoardConfiguration, true);
-            plist_t restore = getDeviceBoardConfigMatchingBuildIdentityFromIdentities(buildIdentities, board[index]->deviceBoardConfiguration, false);
-            TSSBuildIdentity *identity = [[TSSBuildIdentity alloc] initWithUpdate:update ? plist_copy(update) : NULL EraseRestore:restore ? plist_copy(restore) : NULL];
+            plist_t update = NULL, erase = NULL;
+            getDeviceBoardConfigMatchingBuildIdentityFromIdentities(buildIdentities, board[index]->deviceBoardConfiguration, &update, &erase);
+            TSSBuildIdentity *identity = [[TSSBuildIdentity alloc] initWithUpdateInstall:update eraseInstall:erase];
             if (identity) {
                 [array addObject:identity];
             }
         }
         else break;
     }
-    plist_free(buildIdentities);
+    plist_free(buildManifest);
     return array;
 }
-- (nullable instancetype)initWithUpdate:(nullable void *)update EraseRestore:(nullable void *)erase { 
++ (NSString *)buildIdentityCacheFileNameWithDeviceBoard:(NSString *)deviceBoard version:(NSString *)version buildId:(NSString *)buildId {
+    return [NSString stringWithFormat:@"%@_%@-%@", deviceBoard, version, buildId];
+}
+- (nullable instancetype) initWithUpdateInstall: (nullable void *) updateInstall eraseInstall: (nullable void *) eraseInstall {
     self = [super init];
-    if (self) {
-        if (update || erase) {
-            self.updateInstall = update;
-            self.eraseInstall = erase;
-        }
-        else return nil;
+    if (!self) {
+        return nil;
     }
+    if (updateInstall || eraseInstall) {
+        char *value = NULL;
+        plist_get_string_val(plist_access_path(eraseInstall ? eraseInstall : updateInstall, 2, "Info", "DeviceClass"), &value);
+        if (!value) {
+            return nil;
+        }
+        self.deviceBoardConfiguration = [NSString stringWithCString:value encoding:NSASCIIStringEncoding];
+        free(value);
+        self.updateInstall = plist_copy(updateInstall);
+        self.eraseInstall = plist_copy(eraseInstall);
+    }
+    else return nil;
     return self;
 }
-- (nullable instancetype)initWithBuildManifest:(nonnull NSDictionary<NSString *,id> *)buildManifest DeviceBoard:(nonnull NSString *)deviceBoard {
-    NSArray *objcBuildIdentities = buildManifest[@"BuildIdentities"];
-    if (!objcBuildIdentities) {
+- (instancetype)initWithBuildManifestPlistDictNode:(void *)plistDictNode deviceBoard: (NSString *) deviceBoard {
+    plist_t buildIdentities = plist_dict_get_item(plistDictNode, "BuildIdentities");
+    if (!PLIST_IS_ARRAY(buildIdentities)) {
         return nil;
     }
-    NSString *str = [[NSString alloc] initWithData:[NSPropertyListSerialization dataWithPropertyList:objcBuildIdentities format:NSPropertyListXMLFormat_v1_0 options:0 error:nil] encoding:NSASCIIStringEncoding];
-    plist_t buildIdentities = NULL;
-    plist_from_xml([str cStringUsingEncoding:NSASCIIStringEncoding], (uint32_t)str.length, &buildIdentities);
-    if (!buildIdentities) {
-        return nil;
-    }
-    plist_t update = getDeviceBoardConfigMatchingBuildIdentityFromIdentities(buildIdentities, [deviceBoard cStringUsingEncoding:NSASCIIStringEncoding], true);
-    plist_t restore = getDeviceBoardConfigMatchingBuildIdentityFromIdentities(buildIdentities, [deviceBoard cStringUsingEncoding:NSASCIIStringEncoding], false);
-    TSSBuildIdentity *identity = [self initWithUpdate:update ? plist_copy(update) : NULL EraseRestore:restore ? plist_copy(restore) : NULL];
-    plist_free(buildIdentities);
+    plist_t update = NULL, erase = NULL;
+    getDeviceBoardConfigMatchingBuildIdentityFromIdentities(buildIdentities, [deviceBoard cStringUsingEncoding:NSASCIIStringEncoding], &update, &erase);
+    TSSBuildIdentity *identity = [self initWithUpdateInstall:update eraseInstall:erase];
     return identity;
 }
-- (NSString *) deviceBoardConfiguration {
-    return getDeviceBoardForPlist(self.eraseInstall ? self.eraseInstall : self.updateInstall);
+- (instancetype)initWithBuildManifestData:(NSData *)buildManifestData deviceBoard:(NSString *)deviceBoard {
+    plist_t buildManifest = NULL;
+    plist_from_xml(buildManifestData.bytes, (uint32_t)buildManifestData.length, &buildManifest);
+    if (!PLIST_IS_DICT(buildManifest)) {
+        plist_free(buildManifest);
+        return nil;
+    }
+    return [self initWithBuildManifestPlistDictNode:buildManifest deviceBoard:deviceBoard];
+}
+- (instancetype)initWithBuildIdentitiesData:(NSData *)buildIdentityData {
+    plist_t buildIdentityDict = NULL;
+    plist_from_xml(buildIdentityData.bytes, (uint32_t)buildIdentityData.length, &buildIdentityDict);
+    self = [self initWithUpdateInstall:plist_dict_get_item(buildIdentityDict, "Update") eraseInstall:plist_dict_get_item(buildIdentityDict, "Erase")];
+    plist_free(buildIdentityDict);
+    return self;
+}
+- (BOOL)writeBuildIdentitiesToFile:(NSString *)filePath error:(NSError *__autoreleasing  _Nullable * _Nullable)error {
+    plist_t dictionary = plist_new_dict();
+    if (self.updateInstall) {
+        plist_dict_set_item(dictionary, "Update", plist_copy(self.updateInstall));
+    }
+    if (self.eraseInstall) {
+        plist_dict_set_item(dictionary, "Erase", plist_copy(self.eraseInstall));
+    }
+    
+    char *buffer = NULL;
+    uint32_t length = 0;
+    plist_to_xml(dictionary, &buffer, &length);
+    plist_free(dictionary);
+    
+    return [[NSData dataWithBytesNoCopy:buffer length:length] writeToFile:filePath options:NSDataWritingAtomic error:error];
 }
 - (void)dealloc
 {

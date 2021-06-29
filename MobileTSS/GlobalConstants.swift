@@ -31,34 +31,17 @@ struct OTAMetaDataKeys {
 struct LocalizedString {
     // TODO: localize
     static let errorTitle = "Error"
+    static let identifier = "Identifier"
+    static let board = "Board"
+    static let version = "Version"
+    static let buildid = "Build ID"
+    static let releasedate = "Release date"
 }
 struct CustomAPGenKey {
     static let APNonce_Key = "apnonce"
     static let Generator_Key = "generator"
 }
 struct GlobalConstants {
-    #if DEBIAN_PACKAGE
-    static let mainDirectory = "/private/var/mobile/Documents/MobileTSS/"
-    static let buildManifestDirectoryPath: String = {
-        let directoryPath = mainDirectory + "BuildManifests/"
-        try! FileManager.default.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
-        return directoryPath
-    }()
-    static let documentsDirectoryPath: String = {
-        let directoryPath = mainDirectory + "Documents/"
-        try! FileManager.default.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
-        return directoryPath
-    }()
-    static let preferencesFilePath = preferencesFolderPath + "\(Bundle.main.bundleIdentifier!).plist"
-    static let customRequestDataFilePath: String = preferencesFolderPath + "CustomRequest.plist"
-    static let customAPNonceGenListFilePath: String = preferencesFolderPath + "CustomAPNoncesWithGen.plist"
-
-    private static let preferencesFolderPath: String = {
-        let directoryPath = mainDirectory + "Preferences/"
-        try! FileManager.default.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
-        return directoryPath
-    }()
-    #else
     static let buildManifestDirectoryPath: String = {
         let directoryPath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/BuildManifests/"
         try! FileManager.default.createDirectory(atPath: directoryPath, withIntermediateDirectories: true, attributes: nil)
@@ -67,8 +50,9 @@ struct GlobalConstants {
     static let documentsDirectoryPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0] + "/"
     static let customRequestDataFilePath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/CustomRequest.plist"
     static let customAPNonceGenListFilePath = NSSearchPathForDirectoriesInDomains(.libraryDirectory, .userDomainMask, true)[0] + "/CustomAPNoncesWithGen.plist"
-    #endif
-
-    static let localProductType = String(cString: getLocalDeviceInfo().pointee.deviceModel)
-    static let localDeviceBoard = String(cString: getLocalDeviceInfo().pointee.deviceBoardConfiguration)
+}
+extension String {
+    subscript (i: Int) -> Character {
+        return self[index(startIndex, offsetBy: i)]
+    }
 }
